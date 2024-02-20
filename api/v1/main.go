@@ -1,10 +1,13 @@
 package v1
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+var Database *sql.DB
 
 // Ping godoc
 // @Summary ping
@@ -22,5 +25,6 @@ func Ping(g *gin.Context) {
 func Handler(r *gin.RouterGroup) {
 	r.GET("/ping", Ping)
 
-	UserHandler(r.Group("/user/:ident"))
+	UserHandler(r.Group("/user"))
+	GroupHandler(r.Group("/group"))
 }

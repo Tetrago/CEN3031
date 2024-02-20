@@ -1,9 +1,9 @@
 package v1
 
 import (
-	"database/sql"
-	"fmt"
+	"math/rand"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	. "github.com/go-jet/jet/v2/postgres"
@@ -14,28 +14,27 @@ import (
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
 )
 
-type UserUri struct {
-	Identifier string `uri:"ident" binding:"required"`
-}
-
-var Database *sql.DB
-
-// Groups godoc
-// @Summary Fetchs user groups
-// @Description Fetchs groups a user belongs to
+// User godoc
+// @Summary Fetch user
+// @Description Fetches user information and groups
 // @Tags user
 // @Produce json
-// @Success 200 {array} GroupModel
+// @Success 200 {object} UserModel
+// @Failure 400
+// @Failure 500
 // @Param ident path string true "User identifier"
-// @Router /v1/user/{ident} [get]
+// @Router /v1/user/get/{ident} [get]
 func User(g *gin.Context) {
-	var uri UserUri
-	if err := g.ShouldBindUri(&uri); err != nil {
+	var request struct {
+		Identifier string `uri:"ident" binding:"required"`
+	}
+
+	if err := g.ShouldBindUri(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	var dest []struct {
+	var dest struct {
 		model.UserAccount
 
 		Rooms []model.Room
@@ -49,7 +48,7 @@ func User(g *gin.Context) {
 			LEFT_JOIN(UserRoom, UserAccount.ID.EQ(UserRoom.UserID)).
 			LEFT_JOIN(Room, UserRoom.RoomID.EQ(Room.ID)),
 	).WHERE(
-		UserAccount.Identifier.EQ(String(uri.Identifier)),
+		UserAccount.Identifier.EQ(String(request.Identifier)),
 	)
 
 	if err := stmt.Query(Database, &dest); err != nil {
@@ -63,17 +62,86 @@ func User(g *gin.Context) {
 		return
 	}
 
-	fmt.Println(dest)
+	g.JSON(http.StatusOK, UserModel{
+		dest.Identifier,
+		dest.DisplayName,
+		lo.Map(dest.Rooms, MapToGroupModel),
+	})
+}
+
+func GetIdentifier() (string, error) {
+generate:
+	ident := strconv.FormatUint(rand.Uint64(), 16)
+
+	var dest struct {
+		model.UserAccount
+	}
+
+	stmt := SELECT(UserAccount.Identifier).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(ident))).LIMIT(1)
+
+	switch err := stmt.Query(Database, &dest); err {
+	default:
+		return "", err
+	case nil:
+		goto generate
+	case qrm.ErrNoRows:
+		return ident, nil
+	}
+}
+
+type registerRequest struct {
+	DisplayName string `json:"display_name"`
+	Email       string `json:"email"`
+	Hash        string `json:"hash"`
+}
+
+// Register godoc
+// @Summary Register a new user
+// @Description Registers a new user given the provided arguments
+// @Tags user
+// @Produce json
+// @Consume json
+// @Success 200 {object} UserModel
+// @Failure 500
+// @Param request body registerRequest true "User registration information"
+// @Router /v1/user/register [post]
+func Register(g *gin.Context) {
+	var request registerRequest
+
+	if err := g.BindJSON(&request); err != nil {
+		g.Status(http.StatusInternalServerError)
+		return
+	}
+
+	ident, err := GetIdentifier()
+	if err != nil {
+		g.Status(http.StatusInternalServerError)
+		return
+	}
+
+	var dest model.UserAccount
+
+	stmt := UserAccount.INSERT(UserAccount.Identifier, UserAccount.DisplayName, UserAccount.Hash, UserAccount.Email).
+		MODEL(model.UserAccount{
+			Identifier:  ident,
+			DisplayName: request.DisplayName,
+			Hash:        request.Hash,
+			Email:       request.Email,
+		}).
+		RETURNING(UserAccount.AllColumns)
+
+	if err := stmt.Query(Database, &dest); err != nil {
+		g.Status(http.StatusInternalServerError)
+	}
 
 	g.JSON(http.StatusOK, UserModel{
-		dest[0].Identifier,
-		dest[0].DisplayName,
-		lo.Map(dest[0].Rooms, func(x model.Room, _ int) GroupModel {
-			return GroupModel{x.ID, x.Name}
-		}),
+		dest.Identifier,
+		dest.DisplayName,
+		[]GroupModel{},
 	})
 }
 
 func UserHandler(r *gin.RouterGroup) {
-	r.GET("/", User)
+	r.GET("/get/:ident", User)
+	r.POST("/register", Register)
 }
