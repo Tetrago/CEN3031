@@ -1,11 +1,10 @@
 package v1
 
 import (
-    "net/http"
+	"net/http"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
-// @BasePath /api/v1
 
 // Ping godoc
 // @Summary ping
@@ -15,11 +14,13 @@ import (
 // @Accept json
 // @Produce json
 // @Success 200 {string} pong
-// @Router /ping [get]
+// @Router /v1/ping [get]
 func Ping(g *gin.Context) {
-    g.JSON(http.StatusOK, "pong")
+	g.JSON(http.StatusOK, "pong")
 }
 
-func Setup(r *gin.RouterGroup) {
-    r.GET("/ping", Ping)
+func Handler(r *gin.RouterGroup) {
+	r.GET("/ping", Ping)
+
+	UserHandler(r.Group("/user/:id"))
 }
