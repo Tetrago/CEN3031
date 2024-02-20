@@ -9,6 +9,7 @@ package model
 
 type UserAccount struct {
 	ID          int64 `sql:"primary_key"`
+	Identifier  string
 	DisplayName string
 	Hash        string
 	Email       string

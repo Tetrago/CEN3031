@@ -38,7 +38,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/user/{id}": {
+        "/v1/user/{ident}": {
             "get": {
                 "description": "Fetchs groups a user belongs to",
                 "produces": [
@@ -50,9 +50,9 @@ const docTemplate = `{
                 "summary": "Fetchs user groups",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "id",
+                        "type": "string",
+                        "description": "User identifier",
+                        "name": "ident",
                         "in": "path",
                         "required": true
                     }

@@ -25,15 +25,15 @@ paths:
       summary: ping
       tags:
       - example
-  /v1/user/{id}:
+  /v1/user/{ident}:
     get:
       description: Fetchs groups a user belongs to
       parameters:
-      - description: User ID
+      - description: User identifier
         in: path
-        name: id
+        name: ident
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:

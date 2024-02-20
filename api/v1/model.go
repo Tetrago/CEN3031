@@ -6,7 +6,7 @@ type GroupModel struct {
 }
 
 type UserModel struct {
-	ID          int64        `json:"id"`
+	Identifier  string       `json:"identifier"`
 	DisplayName string       `json:"display_name"`
 	Groups      []GroupModel `json:"groups"`
 }

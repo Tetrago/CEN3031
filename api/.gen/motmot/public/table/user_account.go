@@ -18,6 +18,7 @@ type userAccountTable struct {
 
 	// Columns
 	ID          postgres.ColumnInteger
+	Identifier  postgres.ColumnString
 	DisplayName postgres.ColumnString
 	Hash        postgres.ColumnString
 	Email       postgres.ColumnString
@@ -63,12 +64,13 @@ func newUserAccountTable(schemaName, tableName, alias string) *UserAccountTable 
 func newUserAccountTableImpl(schemaName, tableName, alias string) userAccountTable {
 	var (
 		IDColumn          = postgres.IntegerColumn("id")
+		IdentifierColumn  = postgres.StringColumn("identifier")
 		DisplayNameColumn = postgres.StringColumn("display_name")
 		HashColumn        = postgres.StringColumn("hash")
 		EmailColumn       = postgres.StringColumn("email")
 		BioColumn         = postgres.StringColumn("bio")
-		allColumns        = postgres.ColumnList{IDColumn, DisplayNameColumn, HashColumn, EmailColumn, BioColumn}
-		mutableColumns    = postgres.ColumnList{DisplayNameColumn, HashColumn, EmailColumn, BioColumn}
+		allColumns        = postgres.ColumnList{IDColumn, IdentifierColumn, DisplayNameColumn, HashColumn, EmailColumn, BioColumn}
+		mutableColumns    = postgres.ColumnList{IdentifierColumn, DisplayNameColumn, HashColumn, EmailColumn, BioColumn}
 	)
 
 	return userAccountTable{
@@ -76,6 +78,7 @@ func newUserAccountTableImpl(schemaName, tableName, alias string) userAccountTab
 
 		//Columns
 		ID:          IDColumn,
+		Identifier:  IdentifierColumn,
 		DisplayName: DisplayNameColumn,
 		Hash:        HashColumn,
 		Email:       EmailColumn,
