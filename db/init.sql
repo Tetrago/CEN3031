@@ -1,5 +1,6 @@
 CREATE TABLE user_account(
     id bigserial PRIMARY KEY,
+    identifier char(16) NOT NULL,
     display_name varchar(64) NOT NULL,
     hash char(64) NOT NULL,
     email varchar(128) NOT NULL,

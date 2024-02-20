@@ -22,5 +22,5 @@ func Ping(g *gin.Context) {
 func Handler(r *gin.RouterGroup) {
 	r.GET("/ping", Ping)
 
-	UserHandler(r.Group("/user/:id"))
+	UserHandler(r.Group("/user/:ident"))
 }
