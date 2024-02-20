@@ -1,8 +1,16 @@
-basePath: /api/v1
+basePath: /api
+definitions:
+  v1.GroupModel:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
-  /ping:
+  /v1/ping:
     get:
       consumes:
       - application/json
@@ -17,4 +25,25 @@ paths:
       summary: ping
       tags:
       - example
+  /v1/user/{id}:
+    get:
+      description: Fetchs groups a user belongs to
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.GroupModel'
+            type: array
+      summary: Fetchs user groups
+      tags:
+      - user
 swagger: "2.0"
