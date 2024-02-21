@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -39,7 +40,11 @@ func Hash(value string) string {
 }
 
 func MakeToken(contents TokenContents) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"contents": contents})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"contents": contents,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"iat":      time.Now().Unix(),
+	})
 	return token.SignedString(Secret)
 }
 
@@ -57,6 +62,10 @@ func ProcessToken(str string) (*TokenContents, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		if claims["exp"].(int64) < time.Now().Unix() {
+			return nil, fmt.Errorf("token expired")
+		}
+
 		return &TokenContents{
 			Ident: claims["contents"].(map[string]interface{})["ident"].(string),
 		}, nil
