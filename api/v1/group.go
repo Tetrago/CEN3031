@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,7 @@ func Groups(g *gin.Context) {
 	stmt := SELECT(Room.AllColumns).FROM(Room)
 
 	if err := stmt.Query(Database, &dest); err != nil {
+		fmt.Printf("[/v1/group/all] Error querying database: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 		return
 	}

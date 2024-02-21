@@ -2,10 +2,6 @@ package v1
 
 import "github.com/tetrago/motmot/api/.gen/motmot/public/model"
 
-type TokenModel struct {
-	Token string `json:"token"`
-}
-
 type GroupModel struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`

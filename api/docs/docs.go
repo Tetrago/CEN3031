@@ -15,8 +15,83 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/auth/login": {
+            "post": {
+                "description": "Loging to user and authenticate with the backend",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login user",
+                "parameters": [
+                    {
+                        "description": "User login information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.loginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.loginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/v1/auth/renew": {
+            "post": {
+                "description": "Renews token, preventing timeouts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Renew token",
+                "parameters": [
+                    {
+                        "description": "Token to renew",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.renewStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.renewStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/v1/group/all": {
             "get": {
+                "description": "Gets all public groups",
                 "produces": [
                     "application/json"
                 ],
@@ -36,29 +111,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
-        "/v1/ping": {
-            "get": {
-                "description": "do ping",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "example"
-                ],
-                "summary": "ping",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
                     }
                 }
             }
@@ -126,6 +178,9 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1.UserModel"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request"
+                    },
                     "500": {
                         "description": "Internal Server Error"
                     }
@@ -162,6 +217,25 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.loginRequest": {
+            "type": "object",
+            "properties": {
+                "ident": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.loginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "v1.registerRequest": {
             "type": "object",
             "properties": {
@@ -171,7 +245,15 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "hash": {
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.renewStruct": {
+            "type": "object",
+            "properties": {
+                "token": {
                     "type": "string"
                 }
             }

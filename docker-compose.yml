@@ -9,9 +9,13 @@ services:
     restart: always
     environment: 
       - DATABASE_HOSTNAME=db
-      - DATABASE_PASSWORD=insecure
+      - DATABASE_PASSWORD=file:///run/secrets/db_password
+      - SECRET=file:///run/secrets/api_secret
     ports:
       - '127.0.0.1:8080:8080'
+    secrets:
+      - api_secret
+      - db_password
 
   db:
     image: 'postgres:12'
@@ -20,8 +24,16 @@ services:
     environment:
       - POSTGRES_USER=motmot
       - POSTGRES_DB=motmot
-      - POSTGRES_PASSWORD=insecure
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - './db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro'
       - './db/data:/var/lib/postgresql/data'
+    secrets:
+      - db_password
+
+secrets:
+  api_secret:
+    file: ./secret.txt
+  db_password:
+    file: ./secret.txt
