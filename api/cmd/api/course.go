@@ -101,12 +101,12 @@ func courseGroup(g *gin.Context) {
 		Code       string `uri:"code" binding:"required"`
 	}
 
-	if err := g.ShouldBindUri(&uri); err != nil || len(uri.Department) != 3 || len(uri.Code) != 4 {
+	if err := g.ShouldBindUri(&uri); err != nil || len(uri.Department) != 3 || (len(uri.Code) != 4 && len(uri.Code) != 5) {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	label := fmt.Sprintf("%s %s", strings.ToUpper(uri.Department), uri.Code)
+	label := fmt.Sprintf("%s %s", strings.ToUpper(uri.Department), strings.ToUpper(uri.Code))
 
 	var dest model.Room
 	stmt := SELECT(Room.ID).FROM(Room).WHERE(Room.Name.EQ(String(label)))
@@ -128,16 +128,19 @@ func courseGroup(g *gin.Context) {
 		return
 	}
 
-	if !lo.ContainsBy(courses, func(x course) bool { return x.Label == label }) {
+	course, ok := lo.Find(courses, func(x course) bool { return x.Label == label })
+	if !ok {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	ins := Room.INSERT(Room.Name).MODEL(model.Room{
-		Name: label,
+	ins := Room.INSERT(Room.Name, Room.Description).MODEL(model.Room{
+		Name:        label,
+		Description: course.Name,
 	}).RETURNING(Room.ID)
 
 	if err := ins.Query(Database, &dest); err != nil {
+		fmt.Printf("[/course/group] Error querying database: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	} else {
 		g.JSON(http.StatusOK, dest.ID)

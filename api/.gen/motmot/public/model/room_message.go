@@ -8,9 +8,9 @@
 package model
 
 type RoomMessage struct {
-	ID          int64 `sql:"primary_key"`
-	UserID      int64
-	RoomID      int64
-	MessageText string
-	Utc         int64
+	ID       int64 `sql:"primary_key"`
+	UserID   int64
+	RoomID   int64
+	Contents string
+	Utc      int64
 }

@@ -21,6 +21,7 @@ type userGetResponseGroup struct {
 type userGetResponse struct {
 	Identifier  string                 `json:"ident"`
 	DisplayName string                 `json:"display_name"`
+	Bio         *string                `json:"bio,omitempty"`
 	Groups      []userGetResponseGroup `json:"groups"`
 }
 
@@ -51,7 +52,7 @@ func userGet(g *gin.Context) {
 	}
 
 	stmt := SELECT(
-		UserAccount.Identifier, UserAccount.DisplayName,
+		UserAccount.Identifier, UserAccount.DisplayName, UserAccount.Bio,
 		Room.Name,
 	).FROM(
 		UserAccount.
@@ -76,6 +77,7 @@ func userGet(g *gin.Context) {
 	g.JSON(http.StatusOK, userGetResponse{
 		dest.Identifier,
 		dest.DisplayName,
+		dest.Bio,
 		lo.Map(dest.Rooms, func(x model.Room, _ int) userGetResponseGroup {
 			return userGetResponseGroup{x.ID, x.Name}
 		}),
@@ -125,7 +127,7 @@ type userRegisterResponse struct {
 // @Failure 400
 // @Failure 500
 // @Param request body userRegisterRequest true "User registration information"
-// @Router /user/Register [post]
+// @Router /user/register [post]
 func userRegister(g *gin.Context) {
 	var request userRegisterRequest
 	if err := g.BindJSON(&request); err != nil {
@@ -159,7 +161,49 @@ func userRegister(g *gin.Context) {
 	g.JSON(http.StatusOK, userRegisterResponse{dest.Identifier})
 }
 
+type userBioRequest struct {
+	Token string `json:"token"`
+	Bio   string `json:"bio"`
+}
+
+// Bio godoc
+// @Summary Updates bio
+// @Description Updates a user's bio
+// @Tags user
+// @Produce json
+// @Consume json
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Param request body userBioRequest true "User token and new bio"
+// @Router /user/bio [post]
+func userBio(g *gin.Context) {
+	var request userBioRequest
+	if err := g.BindJSON(&request); err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	token, err := ProcessToken(request.Token)
+	if err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	stmt := UserAccount.UPDATE(UserAccount.Bio).MODEL(model.UserAccount{
+		Bio: &request.Bio,
+	}).WHERE(UserAccount.Identifier.EQ(String(token.Ident)))
+
+	if _, err := stmt.Exec(Database); err != nil {
+		fmt.Printf("[/usr/bio] Failed to execute query on database: %s\n", err.Error())
+		g.Status(http.StatusInternalServerError)
+	} else {
+		g.Status(http.StatusOK)
+	}
+}
+
 func UserHandler(r *gin.RouterGroup) {
-	r.GET("/user/:ident", userGet)
+	r.GET("/get/:ident", userGet)
 	r.POST("/register", userRegister)
+	r.POST("/bio", userBio)
 }
