@@ -1,4 +1,4 @@
-package v1
+package main
 
 import "github.com/tetrago/motmot/api/.gen/motmot/public/model"
 

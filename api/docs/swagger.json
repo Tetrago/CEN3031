@@ -3,9 +3,8 @@
     "info": {
         "contact": {}
     },
-    "basePath": "/api",
     "paths": {
-        "/v1/auth/login": {
+        "/auth/login": {
             "post": {
                 "description": "Loging to user and authenticate with the backend",
                 "produces": [
@@ -22,7 +21,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.loginRequest"
+                            "$ref": "#/definitions/main.loginRequest"
                         }
                     }
                 ],
@@ -30,7 +29,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.loginResponse"
+                            "$ref": "#/definitions/main.loginResponse"
                         }
                     },
                     "400": {
@@ -42,7 +41,7 @@
                 }
             }
         },
-        "/v1/auth/renew": {
+        "/auth/renew": {
             "post": {
                 "description": "Renews token, preventing timeouts",
                 "produces": [
@@ -59,7 +58,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.renewStruct"
+                            "$ref": "#/definitions/main.renewStruct"
                         }
                     }
                 ],
@@ -67,7 +66,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.renewStruct"
+                            "$ref": "#/definitions/main.renewStruct"
                         }
                     },
                     "400": {
@@ -79,7 +78,7 @@
                 }
             }
         },
-        "/v1/group/all": {
+        "/group/all": {
             "get": {
                 "description": "Gets all public groups",
                 "produces": [
@@ -95,7 +94,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/v1.GroupModel"
+                                "$ref": "#/definitions/main.GroupModel"
                             }
                         }
                     },
@@ -105,7 +104,7 @@
                 }
             }
         },
-        "/v1/user/get/{ident}": {
+        "/user/get/{ident}": {
             "get": {
                 "description": "Fetches user information and groups",
                 "produces": [
@@ -128,7 +127,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.UserModel"
+                            "$ref": "#/definitions/main.UserModel"
                         }
                     },
                     "400": {
@@ -140,7 +139,7 @@
                 }
             }
         },
-        "/v1/user/register": {
+        "/user/register": {
             "post": {
                 "description": "Registers a new user given the provided arguments",
                 "produces": [
@@ -157,7 +156,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.registerRequest"
+                            "$ref": "#/definitions/main.registerRequest"
                         }
                     }
                 ],
@@ -165,7 +164,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.UserModel"
+                            "$ref": "#/definitions/main.UserModel"
                         }
                     },
                     "400": {
@@ -179,7 +178,7 @@
         }
     },
     "definitions": {
-        "v1.GroupModel": {
+        "main.GroupModel": {
             "type": "object",
             "properties": {
                 "id": {
@@ -190,7 +189,7 @@
                 }
             }
         },
-        "v1.UserModel": {
+        "main.UserModel": {
             "type": "object",
             "properties": {
                 "display_name": {
@@ -199,7 +198,7 @@
                 "groups": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/v1.GroupModel"
+                        "$ref": "#/definitions/main.GroupModel"
                     }
                 },
                 "identifier": {
@@ -207,7 +206,7 @@
                 }
             }
         },
-        "v1.loginRequest": {
+        "main.loginRequest": {
             "type": "object",
             "properties": {
                 "ident": {
@@ -218,7 +217,7 @@
                 }
             }
         },
-        "v1.loginResponse": {
+        "main.loginResponse": {
             "type": "object",
             "properties": {
                 "token": {
@@ -226,7 +225,7 @@
                 }
             }
         },
-        "v1.registerRequest": {
+        "main.registerRequest": {
             "type": "object",
             "properties": {
                 "display_name": {
@@ -240,7 +239,7 @@
                 }
             }
         },
-        "v1.renewStruct": {
+        "main.renewStruct": {
             "type": "object",
             "properties": {
                 "token": {

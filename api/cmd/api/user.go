@@ -1,4 +1,4 @@
-package v1
+package main
 
 import (
 	"fmt"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/tetrago/motmot/api/.gen/motmot/public/model"
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
-	"github.com/tetrago/motmot/api/util"
 )
 
 const userIdentifierLength = 16
@@ -25,7 +24,7 @@ const userIdentifierLength = 16
 // @Failure 400
 // @Failure 500
 // @Param ident path string true "User identifier"
-// @Router /v1/user/get/{ident} [get]
+// @Router /user/get/{ident} [get]
 func User(g *gin.Context) {
 	var request struct {
 		Identifier string `uri:"ident" binding:"required"`
@@ -78,7 +77,7 @@ func GetIdentifier() (string, error) {
 	}
 
 generate:
-	ident, err := util.GenerateBase64(userIdentifierLength)
+	ident, err := GenerateBase64(userIdentifierLength)
 	if err != nil {
 		return "", err
 	}
@@ -111,7 +110,7 @@ type registerRequest struct {
 // @Failure 400
 // @Failure 500
 // @Param request body registerRequest true "User registration information"
-// @Router /v1/user/register [post]
+// @Router /user/register [post]
 func Register(g *gin.Context) {
 	var request registerRequest
 	if err := g.BindJSON(&request); err != nil {
@@ -132,7 +131,7 @@ func Register(g *gin.Context) {
 		MODEL(model.UserAccount{
 			Identifier:  ident,
 			DisplayName: request.DisplayName,
-			Hash:        util.Hash(request.Password),
+			Hash:        Hash(request.Password),
 			Email:       request.Email,
 		}).
 		RETURNING(UserAccount.AllColumns)

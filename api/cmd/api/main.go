@@ -12,12 +12,11 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	_ "github.com/tetrago/motmot/api/docs"
-	"github.com/tetrago/motmot/api/util"
-	v1 "github.com/tetrago/motmot/api/v1"
+	docs "github.com/tetrago/motmot/api/docs"
 )
 
-// @BasePath /api
+var Database *sql.DB
+var Secret []byte
 
 func setupDatabase() *sql.DB {
 	password, err := parseSecret(Options.DatabasePassword)
@@ -45,16 +44,27 @@ func setupDatabase() *sql.DB {
 }
 
 func setupRouter() *gin.Engine {
+	var endpoint string
+	if e, ok := os.LookupEnv("ENDPOINT"); !ok {
+		endpoint = "/api"
+	} else {
+		endpoint = e
+	}
+
 	if !Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	r := gin.Default()
+	g := r.Group(endpoint)
 
-	v1.Handler(r.Group("/api/v1"))
+	AuthHandler(g.Group("/auth"))
+	GroupHandler(g.Group("/group"))
+	UserHandler(g.Group("/user"))
 
 	if Debug {
-		r.GET("/api/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+		docs.SwaggerInfo.BasePath = endpoint
+		g.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}
 
 	return r
@@ -91,15 +101,13 @@ func main() {
 	}
 
 	var err error
-	if util.Secret, err = parseSecret(Options.Secret); err != nil {
+	if Secret, err = parseSecret(Options.Secret); err != nil {
 		fmt.Printf("Error when parsing API secret: `%s`\n", err.Error())
 		os.Exit(1)
 	}
 
-	db := setupDatabase()
-	defer db.Close()
-
-	v1.Database = db
+	Database = setupDatabase()
+	defer Database.Close()
 
 	r := setupRouter()
 	r.Run(fmt.Sprintf(":%d", Options.Port))

@@ -1,36 +1,35 @@
-basePath: /api
 definitions:
-  v1.GroupModel:
+  main.GroupModel:
     properties:
       id:
         type: integer
       name:
         type: string
     type: object
-  v1.UserModel:
+  main.UserModel:
     properties:
       display_name:
         type: string
       groups:
         items:
-          $ref: '#/definitions/v1.GroupModel'
+          $ref: '#/definitions/main.GroupModel'
         type: array
       identifier:
         type: string
     type: object
-  v1.loginRequest:
+  main.loginRequest:
     properties:
       ident:
         type: string
       password:
         type: string
     type: object
-  v1.loginResponse:
+  main.loginResponse:
     properties:
       token:
         type: string
     type: object
-  v1.registerRequest:
+  main.registerRequest:
     properties:
       display_name:
         type: string
@@ -39,7 +38,7 @@ definitions:
       password:
         type: string
     type: object
-  v1.renewStruct:
+  main.renewStruct:
     properties:
       token:
         type: string
@@ -47,7 +46,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /v1/auth/login:
+  /auth/login:
     post:
       description: Loging to user and authenticate with the backend
       parameters:
@@ -56,14 +55,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/v1.loginRequest'
+          $ref: '#/definitions/main.loginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.loginResponse'
+            $ref: '#/definitions/main.loginResponse'
         "400":
           description: Bad Request
         "500":
@@ -71,7 +70,7 @@ paths:
       summary: Login user
       tags:
       - auth
-  /v1/auth/renew:
+  /auth/renew:
     post:
       description: Renews token, preventing timeouts
       parameters:
@@ -80,14 +79,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/v1.renewStruct'
+          $ref: '#/definitions/main.renewStruct'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.renewStruct'
+            $ref: '#/definitions/main.renewStruct'
         "400":
           description: Bad Request
         "500":
@@ -95,7 +94,7 @@ paths:
       summary: Renew token
       tags:
       - auth
-  /v1/group/all:
+  /group/all:
     get:
       description: Gets all public groups
       produces:
@@ -105,14 +104,14 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/v1.GroupModel'
+              $ref: '#/definitions/main.GroupModel'
             type: array
         "500":
           description: Internal Server Error
       summary: Gets groups
       tags:
       - group
-  /v1/user/get/{ident}:
+  /user/get/{ident}:
     get:
       description: Fetches user information and groups
       parameters:
@@ -127,7 +126,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.UserModel'
+            $ref: '#/definitions/main.UserModel'
         "400":
           description: Bad Request
         "500":
@@ -135,7 +134,7 @@ paths:
       summary: Fetch user
       tags:
       - user
-  /v1/user/register:
+  /user/register:
     post:
       description: Registers a new user given the provided arguments
       parameters:
@@ -144,14 +143,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/v1.registerRequest'
+          $ref: '#/definitions/main.registerRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.UserModel'
+            $ref: '#/definitions/main.UserModel'
         "400":
           description: Bad Request
         "500":

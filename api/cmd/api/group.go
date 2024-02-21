@@ -1,4 +1,4 @@
-package v1
+package main
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ import (
 // @Produce json
 // @Success 200 {array} GroupModel
 // @Failure 500
-// @Router /v1/group/all [get]
+// @Router /group/all [get]
 func Groups(g *gin.Context) {
 	var dest []model.Room
 
