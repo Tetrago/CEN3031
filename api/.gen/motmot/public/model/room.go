@@ -8,6 +8,7 @@
 package model
 
 type Room struct {
-	ID   int64 `sql:"primary_key"`
-	Name string
+	ID          int64 `sql:"primary_key"`
+	Name        string
+	Description string
 }

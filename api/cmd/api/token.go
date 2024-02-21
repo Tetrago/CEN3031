@@ -34,7 +34,7 @@ func ProcessToken(str string) (*TokenContents, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		if claims["exp"].(int64) < time.Now().Unix() {
+		if int64(claims["exp"].(float64)) < time.Now().Unix() {
 			return nil, fmt.Errorf("token expired")
 		}
 

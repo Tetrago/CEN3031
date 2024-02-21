@@ -17,11 +17,11 @@ type roomMessageTable struct {
 	postgres.Table
 
 	// Columns
-	ID          postgres.ColumnInteger
-	UserID      postgres.ColumnInteger
-	RoomID      postgres.ColumnInteger
-	MessageText postgres.ColumnString
-	Utc         postgres.ColumnInteger
+	ID       postgres.ColumnInteger
+	UserID   postgres.ColumnInteger
+	RoomID   postgres.ColumnInteger
+	Contents postgres.ColumnString
+	Utc      postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -62,24 +62,24 @@ func newRoomMessageTable(schemaName, tableName, alias string) *RoomMessageTable 
 
 func newRoomMessageTableImpl(schemaName, tableName, alias string) roomMessageTable {
 	var (
-		IDColumn          = postgres.IntegerColumn("id")
-		UserIDColumn      = postgres.IntegerColumn("user_id")
-		RoomIDColumn      = postgres.IntegerColumn("room_id")
-		MessageTextColumn = postgres.StringColumn("message_text")
-		UtcColumn         = postgres.IntegerColumn("utc")
-		allColumns        = postgres.ColumnList{IDColumn, UserIDColumn, RoomIDColumn, MessageTextColumn, UtcColumn}
-		mutableColumns    = postgres.ColumnList{UserIDColumn, RoomIDColumn, MessageTextColumn, UtcColumn}
+		IDColumn       = postgres.IntegerColumn("id")
+		UserIDColumn   = postgres.IntegerColumn("user_id")
+		RoomIDColumn   = postgres.IntegerColumn("room_id")
+		ContentsColumn = postgres.StringColumn("contents")
+		UtcColumn      = postgres.IntegerColumn("utc")
+		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, RoomIDColumn, ContentsColumn, UtcColumn}
+		mutableColumns = postgres.ColumnList{UserIDColumn, RoomIDColumn, ContentsColumn, UtcColumn}
 	)
 
 	return roomMessageTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:          IDColumn,
-		UserID:      UserIDColumn,
-		RoomID:      RoomIDColumn,
-		MessageText: MessageTextColumn,
-		Utc:         UtcColumn,
+		ID:       IDColumn,
+		UserID:   UserIDColumn,
+		RoomID:   RoomIDColumn,
+		Contents: ContentsColumn,
+		Utc:      UtcColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

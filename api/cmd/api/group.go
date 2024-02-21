@@ -14,8 +14,9 @@ import (
 )
 
 type groupAllResponseItem struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 // All godoc
@@ -28,7 +29,7 @@ type groupAllResponseItem struct {
 // @Router /group/all [get]
 func groupAll(g *gin.Context) {
 	var dest []model.Room
-	stmt := SELECT(Room.AllColumns).FROM(Room)
+	stmt := SELECT(Room.ID, Room.Name, Room.Description).FROM(Room)
 
 	if err := stmt.Query(Database, &dest); err != nil {
 		fmt.Printf("[/group/all] Error querying database: %s\n", err.Error())
@@ -37,13 +38,14 @@ func groupAll(g *gin.Context) {
 	}
 
 	g.JSON(http.StatusOK, lo.Map(dest, func(x model.Room, _ int) groupAllResponseItem {
-		return groupAllResponseItem{x.ID, x.Name}
+		return groupAllResponseItem{x.ID, x.Name, x.Description}
 	}))
 }
 
 type groupGetResponse struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 // Get godoc
@@ -67,7 +69,7 @@ func groupGet(g *gin.Context) {
 	}
 
 	var dest model.Room
-	stmt := SELECT(Room.ID, Room.Name).FROM(Room).WHERE(Room.ID.EQ(Int64(uri.ID)))
+	stmt := SELECT(Room.ID, Room.Name, Room.Description).FROM(Room).WHERE(Room.ID.EQ(Int64(uri.ID)))
 
 	if err := stmt.Query(Database, &dest); err != nil {
 		switch err {
@@ -84,6 +86,7 @@ func groupGet(g *gin.Context) {
 	g.JSON(http.StatusOK, groupGetResponse{
 		dest.ID,
 		dest.Name,
+		dest.Description,
 	})
 }
 
