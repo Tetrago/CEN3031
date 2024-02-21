@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,8 +43,8 @@ func User(g *gin.Context) {
 	}
 
 	stmt := SELECT(
-		UserAccount.AllColumns,
-		Room.AllColumns,
+		UserAccount.Identifier, UserAccount.DisplayName,
+		Room.Name,
 	).FROM(
 		UserAccount.
 			LEFT_JOIN(UserRoom, UserAccount.ID.EQ(UserRoom.UserID)).
@@ -55,6 +56,7 @@ func User(g *gin.Context) {
 	if err := stmt.Query(Database, &dest); err != nil {
 		switch err {
 		default:
+			fmt.Printf("[/v1/user/get] Error querying database: %s\n", err.Error())
 			g.Status(http.StatusInternalServerError)
 		case qrm.ErrNoRows:
 			g.Status(http.StatusBadRequest)
@@ -96,7 +98,7 @@ generate:
 type registerRequest struct {
 	DisplayName string `json:"display_name"`
 	Email       string `json:"email"`
-	Password    string `json:"hash"`
+	Password    string `json:"password"`
 }
 
 // Register godoc
@@ -112,7 +114,6 @@ type registerRequest struct {
 // @Router /v1/user/register [post]
 func Register(g *gin.Context) {
 	var request registerRequest
-
 	if err := g.BindJSON(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
@@ -120,6 +121,7 @@ func Register(g *gin.Context) {
 
 	ident, err := GetIdentifier()
 	if err != nil {
+		fmt.Printf("[/v1/user/register] Error generating identifier: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 		return
 	}
@@ -136,6 +138,7 @@ func Register(g *gin.Context) {
 		RETURNING(UserAccount.AllColumns)
 
 	if err := stmt.Query(Database, &dest); err != nil {
+		fmt.Printf("[/v1/user/register] Error querying database: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	}
 

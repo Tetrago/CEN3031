@@ -18,20 +18,86 @@ definitions:
       identifier:
         type: string
     type: object
+  v1.loginRequest:
+    properties:
+      ident:
+        type: string
+      password:
+        type: string
+    type: object
+  v1.loginResponse:
+    properties:
+      token:
+        type: string
+    type: object
   v1.registerRequest:
     properties:
       display_name:
         type: string
       email:
         type: string
-      hash:
+      password:
+        type: string
+    type: object
+  v1.renewStruct:
+    properties:
+      token:
         type: string
     type: object
 info:
   contact: {}
 paths:
+  /v1/auth/login:
+    post:
+      description: Loging to user and authenticate with the backend
+      parameters:
+      - description: User login information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.loginResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Login user
+      tags:
+      - auth
+  /v1/auth/renew:
+    post:
+      description: Renews token, preventing timeouts
+      parameters:
+      - description: Token to renew
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.renewStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.renewStruct'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Renew token
+      tags:
+      - auth
   /v1/group/all:
     get:
+      description: Gets all public groups
       produces:
       - application/json
       responses:
@@ -46,21 +112,6 @@ paths:
       summary: Gets groups
       tags:
       - group
-  /v1/ping:
-    get:
-      consumes:
-      - application/json
-      description: do ping
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: ping
-      tags:
-      - example
   /v1/user/get/{ident}:
     get:
       description: Fetches user information and groups
@@ -101,6 +152,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.UserModel'
+        "400":
+          description: Bad Request
         "500":
           description: Internal Server Error
       summary: Register a new user
