@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/auth/login": {
+        "/auth/login": {
             "post": {
                 "description": "Loging to user and authenticate with the backend",
                 "produces": [
@@ -32,7 +32,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.loginRequest"
+                            "$ref": "#/definitions/main.loginRequest"
                         }
                     }
                 ],
@@ -40,7 +40,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.loginResponse"
+                            "$ref": "#/definitions/main.loginResponse"
                         }
                     },
                     "400": {
@@ -52,7 +52,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth/renew": {
+        "/auth/renew": {
             "post": {
                 "description": "Renews token, preventing timeouts",
                 "produces": [
@@ -69,7 +69,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.renewStruct"
+                            "$ref": "#/definitions/main.renewStruct"
                         }
                     }
                 ],
@@ -77,7 +77,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.renewStruct"
+                            "$ref": "#/definitions/main.renewStruct"
                         }
                     },
                     "400": {
@@ -89,7 +89,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/group/all": {
+        "/group/all": {
             "get": {
                 "description": "Gets all public groups",
                 "produces": [
@@ -105,7 +105,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/v1.GroupModel"
+                                "$ref": "#/definitions/main.GroupModel"
                             }
                         }
                     },
@@ -115,7 +115,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/user/get/{ident}": {
+        "/user/get/{ident}": {
             "get": {
                 "description": "Fetches user information and groups",
                 "produces": [
@@ -138,7 +138,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.UserModel"
+                            "$ref": "#/definitions/main.UserModel"
                         }
                     },
                     "400": {
@@ -150,7 +150,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/user/register": {
+        "/user/register": {
             "post": {
                 "description": "Registers a new user given the provided arguments",
                 "produces": [
@@ -167,7 +167,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.registerRequest"
+                            "$ref": "#/definitions/main.registerRequest"
                         }
                     }
                 ],
@@ -175,7 +175,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.UserModel"
+                            "$ref": "#/definitions/main.UserModel"
                         }
                     },
                     "400": {
@@ -189,7 +189,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "v1.GroupModel": {
+        "main.GroupModel": {
             "type": "object",
             "properties": {
                 "id": {
@@ -200,7 +200,7 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.UserModel": {
+        "main.UserModel": {
             "type": "object",
             "properties": {
                 "display_name": {
@@ -209,7 +209,7 @@ const docTemplate = `{
                 "groups": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/v1.GroupModel"
+                        "$ref": "#/definitions/main.GroupModel"
                     }
                 },
                 "identifier": {
@@ -217,7 +217,7 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.loginRequest": {
+        "main.loginRequest": {
             "type": "object",
             "properties": {
                 "ident": {
@@ -228,7 +228,7 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.loginResponse": {
+        "main.loginResponse": {
             "type": "object",
             "properties": {
                 "token": {
@@ -236,7 +236,7 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.registerRequest": {
+        "main.registerRequest": {
             "type": "object",
             "properties": {
                 "display_name": {
@@ -250,7 +250,7 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.renewStruct": {
+        "main.renewStruct": {
             "type": "object",
             "properties": {
                 "token": {
@@ -265,7 +265,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
 	Host:             "",
-	BasePath:         "/api",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "",
 	Description:      "",

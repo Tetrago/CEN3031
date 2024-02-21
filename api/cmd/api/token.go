@@ -1,10 +1,7 @@
-package util
+package main
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,31 +9,6 @@ import (
 
 type TokenContents struct {
 	Ident string `json:"ident"`
-}
-
-var Secret []byte
-
-func GenerateBase64(length int) (string, error) {
-	const pattern = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-	val := make([]byte, length)
-
-	for i := 0; i < length; i++ {
-		r, err := rand.Int(rand.Reader, big.NewInt(int64(len(pattern))))
-
-		if err != nil {
-			return "", err
-		}
-
-		val[i] = pattern[r.Int64()]
-	}
-
-	return string(val), nil
-}
-
-func Hash(value string) string {
-	sh := sha256.New()
-	sh.Write([]byte(value))
-	return fmt.Sprintf("%x", sh.Sum(nil))
 }
 
 func MakeToken(contents TokenContents) (string, error) {

@@ -1,4 +1,4 @@
-package v1
+package main
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/tetrago/motmot/api/.gen/motmot/public/model"
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
-	"github.com/tetrago/motmot/api/util"
 )
 
 type loginRequest struct {
@@ -32,7 +31,7 @@ type loginResponse struct {
 // @Failure 400
 // @Failure 500
 // @Param request body loginRequest true "User login information"
-// @Router /v1/auth/login [post]
+// @Router /auth/login [post]
 func Login(g *gin.Context) {
 	var request loginRequest
 	if err := g.BindJSON(&request); err != nil {
@@ -55,12 +54,12 @@ func Login(g *gin.Context) {
 		return
 	}
 
-	if util.Hash(request.Password) != dest.Hash {
+	if Hash(request.Password) != dest.Hash {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	if str, err := util.MakeToken(util.TokenContents{Ident: request.Ident}); err != nil {
+	if str, err := MakeToken(TokenContents{Ident: request.Ident}); err != nil {
 		fmt.Printf("[/v1/auth/login] Error making token: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	} else {
@@ -82,7 +81,7 @@ type renewStruct struct {
 // @Failure 400
 // @Failure 500
 // @Param request body renewStruct true "Token to renew"
-// @Router /v1/auth/renew [post]
+// @Router /auth/renew [post]
 func Renew(g *gin.Context) {
 	var request renewStruct
 	if err := g.BindJSON(&request); err != nil {
@@ -90,10 +89,10 @@ func Renew(g *gin.Context) {
 		return
 	}
 
-	if contents, err := util.ProcessToken(request.Token); err != nil {
+	if contents, err := ProcessToken(request.Token); err != nil {
 		g.Status(http.StatusBadRequest)
 	} else {
-		if str, err := util.MakeToken(*contents); err != nil {
+		if str, err := MakeToken(*contents); err != nil {
 			fmt.Printf("[/v1/auth/renew] Error making token: %s\n", err.Error())
 			g.Status(http.StatusInternalServerError)
 		} else {
