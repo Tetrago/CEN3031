@@ -287,6 +287,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/join": {
+            "post": {
+                "description": "Adds a user to a group",
+                "tags": [
+                    "user"
+                ],
+                "summary": "Join group",
+                "parameters": [
+                    {
+                        "description": "User token and group to join",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.userJoinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/register": {
             "post": {
                 "description": "Registers a new user given the provided arguments",
@@ -364,6 +395,9 @@ const docTemplate = `{
         "main.groupAllResponseItem": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -424,6 +458,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.userJoinRequest": {
+            "type": "object",
+            "properties": {
+                "group_id": {
+                    "type": "integer"
+                },
+                "token": {
                     "type": "string"
                 }
             }

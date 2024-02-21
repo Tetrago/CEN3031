@@ -53,7 +53,7 @@ func userGet(g *gin.Context) {
 
 	stmt := SELECT(
 		UserAccount.Identifier, UserAccount.DisplayName, UserAccount.Bio,
-		Room.Name,
+		Room.ID, Room.Name,
 	).FROM(
 		UserAccount.
 			LEFT_JOIN(UserRoom, UserAccount.ID.EQ(UserRoom.UserID)).
@@ -195,7 +195,74 @@ func userBio(g *gin.Context) {
 	}).WHERE(UserAccount.Identifier.EQ(String(token.Ident)))
 
 	if _, err := stmt.Exec(Database); err != nil {
-		fmt.Printf("[/usr/bio] Failed to execute query on database: %s\n", err.Error())
+		fmt.Printf("[/user/bio] Failed to execute query on database: %s\n", err.Error())
+		g.Status(http.StatusInternalServerError)
+	} else {
+		g.Status(http.StatusOK)
+	}
+}
+
+type userJoinRequest struct {
+	Token   string `json:"token"`
+	GroupID int64  `json:"group_id"`
+}
+
+// Join godoc
+// @Summary Join group
+// @Description Adds a user to a group
+// @Tags user
+// @Consume json
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Param request body userJoinRequest true "User token and group to join"
+// @Router /user/join [post]
+func userJoin(g *gin.Context) {
+	var request userJoinRequest
+	if err := g.BindJSON(&request); err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	token, err := ProcessToken(request.Token)
+	if err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	var user model.UserAccount
+	if err := UserAccount.SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.Ident))).Query(Database, &user); err != nil {
+		switch err {
+		default:
+			fmt.Printf("[/user/join] Failed query database: %s\n", err.Error())
+			g.Status(http.StatusInternalServerError)
+		case qrm.ErrNoRows:
+			g.Status(http.StatusBadRequest)
+		}
+
+		return
+	}
+
+	var room model.Room
+	if err := Room.SELECT(Room.ID).FROM(Room).WHERE(Room.ID.EQ(Int64(request.GroupID))).Query(Database, &room); err != nil {
+		switch err {
+		default:
+			fmt.Printf("[/user/join] Failed query database: %s\n", err.Error())
+			g.Status(http.StatusInternalServerError)
+		case qrm.ErrNoRows:
+			g.Status(http.StatusBadRequest)
+		}
+
+		return
+	}
+
+	stmt := UserRoom.INSERT(UserRoom.UserID, UserRoom.RoomID).MODEL(model.UserRoom{
+		UserID: user.ID,
+		RoomID: room.ID,
+	})
+
+	if _, err := stmt.Exec(Database); err != nil {
+		fmt.Printf("[/user/join] Failed to execute query on database: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	} else {
 		g.Status(http.StatusOK)
@@ -206,4 +273,5 @@ func UserHandler(r *gin.RouterGroup) {
 	r.GET("/get/:ident", userGet)
 	r.POST("/register", userRegister)
 	r.POST("/bio", userBio)
+	r.POST("/join", userJoin)
 }
