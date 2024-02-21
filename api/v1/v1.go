@@ -27,4 +27,5 @@ func Handler(r *gin.RouterGroup) {
 
 	UserHandler(r.Group("/user"))
 	GroupHandler(r.Group("/group"))
+	SessionHandler(r.Group("/session"))
 }

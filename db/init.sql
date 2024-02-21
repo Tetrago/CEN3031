@@ -16,5 +16,16 @@ CREATE TABLE user_room(
     user_id bigserial,
     room_id bigserial,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES user_account(id),
+    CONSTRAINT fk_room FOREIGN KEY(room_id) REFERENCES room(id),
+    PRIMARY KEY(user_id, room_id)
+);
+
+CREATE TABLE room_message(
+    id bigserial PRIMARY KEY,
+    user_id bigserial NOT NULL,
+    room_id bigserial NOT NULL,
+    message_text varchar(512) NOT NULL,
+    utc bigserial NOT NULL,
+    CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES user_account(id),
     CONSTRAINT fk_room FOREIGN KEY(room_id) REFERENCES room(id)
 );

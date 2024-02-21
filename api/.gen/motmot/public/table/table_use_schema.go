@@ -11,6 +11,7 @@ package table
 // this method only once at the beginning of the program.
 func UseSchema(schema string) {
 	Room = Room.FromSchema(schema)
+	RoomMessage = RoomMessage.FromSchema(schema)
 	UserAccount = UserAccount.FromSchema(schema)
 	UserRoom = UserRoom.FromSchema(schema)
 }
