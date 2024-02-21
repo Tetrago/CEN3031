@@ -12,28 +12,28 @@ import (
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
 )
 
-type loginRequest struct {
+type authLoginRequest struct {
 	Ident    string `json:"ident"`
 	Password string `json:"password"`
 }
 
-type loginResponse struct {
+type authLoginResponse struct {
 	Token string `json:"token"`
 }
 
 // Login godoc
 // @Summary Login user
-// @Description Loging to user and authenticate with the backend
+// @Description Log in to user and authenticate with the backend
 // @Tags auth
 // @Produce json
 // @Consume json
-// @Success 200 {object} loginResponse
+// @Success 200 {object} authLoginResponse
 // @Failure 400
 // @Failure 500
-// @Param request body loginRequest true "User login information"
+// @Param request body authLoginRequest true "User login information"
 // @Router /auth/login [post]
-func Login(g *gin.Context) {
-	var request loginRequest
+func authLogin(g *gin.Context) {
+	var request authLoginRequest
 	if err := g.BindJSON(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
@@ -45,7 +45,7 @@ func Login(g *gin.Context) {
 	if err := stmt.Query(Database, &dest); err != nil {
 		switch err {
 		default:
-			fmt.Printf("[/v1/auth/login] Error querying database: %s\n", err.Error())
+			fmt.Printf("[/auth/login] Error querying database: %s\n", err.Error())
 			g.Status(http.StatusInternalServerError)
 		case qrm.ErrNoRows:
 			g.Status(http.StatusBadRequest)
@@ -60,14 +60,18 @@ func Login(g *gin.Context) {
 	}
 
 	if str, err := MakeToken(TokenContents{Ident: request.Ident}); err != nil {
-		fmt.Printf("[/v1/auth/login] Error making token: %s\n", err.Error())
+		fmt.Printf("[/auth/login] Error making token: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	} else {
-		g.JSON(http.StatusOK, loginResponse{str})
+		g.JSON(http.StatusOK, authLoginResponse{str})
 	}
 }
 
-type renewStruct struct {
+type authRenewRequest struct {
+	Token string `json:"token"`
+}
+
+type authRenewResponse struct {
 	Token string `json:"token"`
 }
 
@@ -77,13 +81,13 @@ type renewStruct struct {
 // @Tags auth
 // @Produce json
 // @Consume json
-// @Success 200 {object} renewStruct
+// @Success 200 {object} authRenewResponse
 // @Failure 400
 // @Failure 500
-// @Param request body renewStruct true "Token to renew"
+// @Param request body authRenewRequest true "Token to renew"
 // @Router /auth/renew [post]
-func Renew(g *gin.Context) {
-	var request renewStruct
+func authRenew(g *gin.Context) {
+	var request authRenewRequest
 	if err := g.BindJSON(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
@@ -93,15 +97,15 @@ func Renew(g *gin.Context) {
 		g.Status(http.StatusBadRequest)
 	} else {
 		if str, err := MakeToken(*contents); err != nil {
-			fmt.Printf("[/v1/auth/renew] Error making token: %s\n", err.Error())
+			fmt.Printf("[/auth/renew] Error making token: %s\n", err.Error())
 			g.Status(http.StatusInternalServerError)
 		} else {
-			g.JSON(http.StatusOK, renewStruct{str})
+			g.JSON(http.StatusOK, authRenewResponse{str})
 		}
 	}
 }
 
 func AuthHandler(r *gin.RouterGroup) {
-	r.POST("/login", Login)
-	r.POST("/renew", Renew)
+	r.POST("/login", authLogin)
+	r.POST("/renew", authRenew)
 }

@@ -59,6 +59,7 @@ func setupRouter() *gin.Engine {
 	g := r.Group(endpoint)
 
 	AuthHandler(g.Group("/auth"))
+	CourseHandler(g.Group("/course"))
 	GroupHandler(g.Group("/group"))
 	UserHandler(g.Group("/user"))
 
