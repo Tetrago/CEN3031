@@ -21,7 +21,7 @@ type roomMessageTable struct {
 	UserID   postgres.ColumnInteger
 	RoomID   postgres.ColumnInteger
 	Contents postgres.ColumnString
-	Utc      postgres.ColumnInteger
+	Iat      postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -66,9 +66,9 @@ func newRoomMessageTableImpl(schemaName, tableName, alias string) roomMessageTab
 		UserIDColumn   = postgres.IntegerColumn("user_id")
 		RoomIDColumn   = postgres.IntegerColumn("room_id")
 		ContentsColumn = postgres.StringColumn("contents")
-		UtcColumn      = postgres.IntegerColumn("utc")
-		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, RoomIDColumn, ContentsColumn, UtcColumn}
-		mutableColumns = postgres.ColumnList{UserIDColumn, RoomIDColumn, ContentsColumn, UtcColumn}
+		IatColumn      = postgres.IntegerColumn("iat")
+		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, RoomIDColumn, ContentsColumn, IatColumn}
+		mutableColumns = postgres.ColumnList{UserIDColumn, RoomIDColumn, ContentsColumn, IatColumn}
 	)
 
 	return roomMessageTable{
@@ -79,7 +79,7 @@ func newRoomMessageTableImpl(schemaName, tableName, alias string) roomMessageTab
 		UserID:   UserIDColumn,
 		RoomID:   RoomIDColumn,
 		Contents: ContentsColumn,
-		Utc:      UtcColumn,
+		Iat:      IatColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

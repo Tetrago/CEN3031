@@ -312,4 +312,28 @@ paths:
       summary: Register a new user
       tags:
       - user
+  /ws:
+    get:
+      description: Opens a WebSocket for a user on a group
+      parameters:
+      - description: Authentication token
+        in: query
+        name: token
+        required: true
+        type: string
+      - description: Active group ID
+        in: query
+        name: group
+        required: true
+        type: integer
+      responses:
+        "202":
+          description: Accepted
+        "400":
+          description: Bad Request
+        "502":
+          description: Bad Gateway
+      summary: Opens a WebSocket
+      tags:
+      - ws
 swagger: "2.0"

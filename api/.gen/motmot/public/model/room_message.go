@@ -12,5 +12,5 @@ type RoomMessage struct {
 	UserID   int64
 	RoomID   int64
 	Contents string
-	Utc      int64
+	Iat      int64
 }
