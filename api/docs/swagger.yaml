@@ -1,35 +1,59 @@
 definitions:
-  main.GroupModel:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-    type: object
-  main.UserModel:
-    properties:
-      display_name:
-        type: string
-      groups:
-        items:
-          $ref: '#/definitions/main.GroupModel'
-        type: array
-      identifier:
-        type: string
-    type: object
-  main.loginRequest:
+  main.authLoginRequest:
     properties:
       ident:
         type: string
       password:
         type: string
     type: object
-  main.loginResponse:
+  main.authLoginResponse:
     properties:
       token:
         type: string
     type: object
-  main.registerRequest:
+  main.authRenewRequest:
+    properties:
+      token:
+        type: string
+    type: object
+  main.authRenewResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  main.groupAllResponseItem:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  main.groupGetResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  main.userGetResponse:
+    properties:
+      display_name:
+        type: string
+      groups:
+        items:
+          $ref: '#/definitions/main.userGetResponseGroup'
+        type: array
+      ident:
+        type: string
+    type: object
+  main.userGetResponseGroup:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  main.userRegisterRequest:
     properties:
       display_name:
         type: string
@@ -38,9 +62,9 @@ definitions:
       password:
         type: string
     type: object
-  main.renewStruct:
+  main.userRegisterResponse:
     properties:
-      token:
+      ident:
         type: string
     type: object
 info:
@@ -48,21 +72,21 @@ info:
 paths:
   /auth/login:
     post:
-      description: Loging to user and authenticate with the backend
+      description: Log in to user and authenticate with the backend
       parameters:
       - description: User login information
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.loginRequest'
+          $ref: '#/definitions/main.authLoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.loginResponse'
+            $ref: '#/definitions/main.authLoginResponse'
         "400":
           description: Bad Request
         "500":
@@ -79,14 +103,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.renewStruct'
+          $ref: '#/definitions/main.authRenewRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.renewStruct'
+            $ref: '#/definitions/main.authRenewResponse'
         "400":
           description: Bad Request
         "500":
@@ -94,6 +118,51 @@ paths:
       summary: Renew token
       tags:
       - auth
+  /course/department/{dep}:
+    get:
+      description: Queries for all UF courses in a three-letter department prefix
+      parameters:
+      - description: Three-letter department prefix
+        in: path
+        name: dep
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+        "503":
+          description: Service Unavailable
+      summary: Get courses in department
+      tags:
+      - course
+  /course/group/{dep}/{code}:
+    get:
+      description: Gets (or creates) group of specified course
+      parameters:
+      - description: Three-letter department prefix
+        in: path
+        name: dep
+        required: true
+        type: string
+      - description: Four-digit course code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+        "503":
+          description: Service Unavailable
+      summary: Get group of specified course
+      tags:
+      - course
   /group/all:
     get:
       description: Gets all public groups
@@ -104,13 +173,60 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.GroupModel'
+              $ref: '#/definitions/main.groupAllResponseItem'
             type: array
         "500":
           description: Internal Server Error
       summary: Gets groups
       tags:
       - group
+  /group/get/{id}:
+    get:
+      description: Gets group information
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.groupGetResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Get group
+      tags:
+      - group
+  /user/Register:
+    post:
+      description: Registers a new user given the provided arguments
+      parameters:
+      - description: User registration information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.userRegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.userRegisterResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Register a new user
+      tags:
+      - user
   /user/get/{ident}:
     get:
       description: Fetches user information and groups
@@ -126,36 +242,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.UserModel'
+            $ref: '#/definitions/main.userGetResponse'
         "400":
           description: Bad Request
         "500":
           description: Internal Server Error
       summary: Fetch user
-      tags:
-      - user
-  /user/register:
-    post:
-      description: Registers a new user given the provided arguments
-      parameters:
-      - description: User registration information
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/main.registerRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/main.UserModel'
-        "400":
-          description: Bad Request
-        "500":
-          description: Internal Server Error
-      summary: Register a new user
       tags:
       - user
 swagger: "2.0"

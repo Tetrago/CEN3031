@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/auth/login": {
             "post": {
-                "description": "Loging to user and authenticate with the backend",
+                "description": "Log in to user and authenticate with the backend",
                 "produces": [
                     "application/json"
                 ],
@@ -32,7 +32,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.loginRequest"
+                            "$ref": "#/definitions/main.authLoginRequest"
                         }
                     }
                 ],
@@ -40,7 +40,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.loginResponse"
+                            "$ref": "#/definitions/main.authLoginResponse"
                         }
                     },
                     "400": {
@@ -69,7 +69,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.renewStruct"
+                            "$ref": "#/definitions/main.authRenewRequest"
                         }
                     }
                 ],
@@ -77,7 +77,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.renewStruct"
+                            "$ref": "#/definitions/main.authRenewResponse"
                         }
                     },
                     "400": {
@@ -85,6 +85,74 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/course/department/{dep}": {
+            "get": {
+                "description": "Queries for all UF courses in a three-letter department prefix",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "course"
+                ],
+                "summary": "Get courses in department",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Three-letter department prefix",
+                        "name": "dep",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "503": {
+                        "description": "Service Unavailable"
+                    }
+                }
+            }
+        },
+        "/course/group/{dep}/{code}": {
+            "get": {
+                "description": "Gets (or creates) group of specified course",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "course"
+                ],
+                "summary": "Get group of specified course",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Three-letter department prefix",
+                        "name": "dep",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Four-digit course code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    },
+                    "503": {
+                        "description": "Service Unavailable"
                     }
                 }
             }
@@ -105,9 +173,81 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.GroupModel"
+                                "$ref": "#/definitions/main.groupAllResponseItem"
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/group/get/{id}": {
+            "get": {
+                "description": "Gets group information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "group"
+                ],
+                "summary": "Get group",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.groupGetResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/user/Register": {
+            "post": {
+                "description": "Registers a new user given the provided arguments",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User registration information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.userRegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.userRegisterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -138,44 +278,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.UserModel"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
-        "/user/register": {
-            "post": {
-                "description": "Registers a new user given the provided arguments",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Register a new user",
-                "parameters": [
-                    {
-                        "description": "User registration information",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.registerRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.UserModel"
+                            "$ref": "#/definitions/main.userGetResponse"
                         }
                     },
                     "400": {
@@ -189,35 +292,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "main.GroupModel": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.UserModel": {
-            "type": "object",
-            "properties": {
-                "display_name": {
-                    "type": "string"
-                },
-                "groups": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/main.GroupModel"
-                    }
-                },
-                "identifier": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.loginRequest": {
+        "main.authLoginRequest": {
             "type": "object",
             "properties": {
                 "ident": {
@@ -228,7 +303,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.loginResponse": {
+        "main.authLoginResponse": {
             "type": "object",
             "properties": {
                 "token": {
@@ -236,7 +311,73 @@ const docTemplate = `{
                 }
             }
         },
-        "main.registerRequest": {
+        "main.authRenewRequest": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.authRenewResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.groupAllResponseItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.groupGetResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.userGetResponse": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.userGetResponseGroup"
+                    }
+                },
+                "ident": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.userGetResponseGroup": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.userRegisterRequest": {
             "type": "object",
             "properties": {
                 "display_name": {
@@ -250,10 +391,10 @@ const docTemplate = `{
                 }
             }
         },
-        "main.renewStruct": {
+        "main.userRegisterResponse": {
             "type": "object",
             "properties": {
-                "token": {
+                "ident": {
                     "type": "string"
                 }
             }

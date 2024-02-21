@@ -13,24 +13,33 @@ import (
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
 )
 
-const userIdentifierLength = 16
+type userGetResponseGroup struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type userGetResponse struct {
+	Identifier  string                 `json:"ident"`
+	DisplayName string                 `json:"display_name"`
+	Groups      []userGetResponseGroup `json:"groups"`
+}
 
 // User godoc
 // @Summary Fetch user
 // @Description Fetches user information and groups
 // @Tags user
 // @Produce json
-// @Success 200 {object} UserModel
+// @Success 200 {object} userGetResponse
 // @Failure 400
 // @Failure 500
 // @Param ident path string true "User identifier"
 // @Router /user/get/{ident} [get]
-func User(g *gin.Context) {
-	var request struct {
+func userGet(g *gin.Context) {
+	var uri struct {
 		Identifier string `uri:"ident" binding:"required"`
 	}
 
-	if err := g.ShouldBindUri(&request); err != nil {
+	if err := g.ShouldBindUri(&uri); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
 	}
@@ -49,13 +58,13 @@ func User(g *gin.Context) {
 			LEFT_JOIN(UserRoom, UserAccount.ID.EQ(UserRoom.UserID)).
 			LEFT_JOIN(Room, UserRoom.RoomID.EQ(Room.ID)),
 	).WHERE(
-		UserAccount.Identifier.EQ(String(request.Identifier)),
+		UserAccount.Identifier.EQ(String(uri.Identifier)),
 	)
 
 	if err := stmt.Query(Database, &dest); err != nil {
 		switch err {
 		default:
-			fmt.Printf("[/v1/user/get] Error querying database: %s\n", err.Error())
+			fmt.Printf("[/user/get] Error querying database: %s\n", err.Error())
 			g.Status(http.StatusInternalServerError)
 		case qrm.ErrNoRows:
 			g.Status(http.StatusBadRequest)
@@ -64,20 +73,22 @@ func User(g *gin.Context) {
 		return
 	}
 
-	g.JSON(http.StatusOK, UserModel{
+	g.JSON(http.StatusOK, userGetResponse{
 		dest.Identifier,
 		dest.DisplayName,
-		lo.Map(dest.Rooms, MapToGroupModel),
+		lo.Map(dest.Rooms, func(x model.Room, _ int) userGetResponseGroup {
+			return userGetResponseGroup{x.ID, x.Name}
+		}),
 	})
 }
 
-func GetIdentifier() (string, error) {
+func makeIdentifier() (string, error) {
 	var dest struct {
 		model.UserAccount
 	}
 
 generate:
-	ident, err := GenerateBase64(userIdentifierLength)
+	ident, err := GenerateBase64(16)
 	if err != nil {
 		return "", err
 	}
@@ -94,10 +105,14 @@ generate:
 	}
 }
 
-type registerRequest struct {
+type userRegisterRequest struct {
 	DisplayName string `json:"display_name"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`
+}
+
+type userRegisterResponse struct {
+	Identifier string `json:"ident"`
 }
 
 // Register godoc
@@ -106,21 +121,21 @@ type registerRequest struct {
 // @Tags user
 // @Produce json
 // @Consume json
-// @Success 200 {object} UserModel
+// @Success 200 {object} userRegisterResponse
 // @Failure 400
 // @Failure 500
-// @Param request body registerRequest true "User registration information"
-// @Router /user/register [post]
-func Register(g *gin.Context) {
-	var request registerRequest
+// @Param request body userRegisterRequest true "User registration information"
+// @Router /user/Register [post]
+func userRegister(g *gin.Context) {
+	var request userRegisterRequest
 	if err := g.BindJSON(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	ident, err := GetIdentifier()
+	ident, err := makeIdentifier()
 	if err != nil {
-		fmt.Printf("[/v1/user/register] Error generating identifier: %s\n", err.Error())
+		fmt.Printf("[/user/register] Error generating identifier: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 		return
 	}
@@ -137,18 +152,14 @@ func Register(g *gin.Context) {
 		RETURNING(UserAccount.AllColumns)
 
 	if err := stmt.Query(Database, &dest); err != nil {
-		fmt.Printf("[/v1/user/register] Error querying database: %s\n", err.Error())
+		fmt.Printf("[/user/register] Error querying database: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	}
 
-	g.JSON(http.StatusOK, UserModel{
-		dest.Identifier,
-		dest.DisplayName,
-		[]GroupModel{},
-	})
+	g.JSON(http.StatusOK, userRegisterResponse{dest.Identifier})
 }
 
 func UserHandler(r *gin.RouterGroup) {
-	r.GET("/get/:ident", User)
-	r.POST("/register", Register)
+	r.GET("/user/:ident", userGet)
+	r.POST("/register", userRegister)
 }
