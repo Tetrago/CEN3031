@@ -2,11 +2,14 @@ version: '3'
 
 services:
   api:
-    build: api
+    build:
+      context: api
+      args:
+        - DEBUG=1
     restart: always
     environment: 
-      - DB_HOSTNAME=db
-      - DB_PASSWORD=insecure
+      - DATABASE_HOSTNAME=db
+      - DATABASE_PASSWORD=insecure
     ports:
       - '127.0.0.1:8080:8080'
 

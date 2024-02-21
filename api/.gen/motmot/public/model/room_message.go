@@ -7,7 +7,10 @@
 
 package model
 
-type UserRoom struct {
-	UserID int64 `sql:"primary_key"`
-	RoomID int64 `sql:"primary_key"`
+type RoomMessage struct {
+	ID          int64 `sql:"primary_key"`
+	UserID      int64
+	RoomID      int64
+	MessageText string
+	Utc         int64
 }

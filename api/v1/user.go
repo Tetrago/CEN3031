@@ -1,9 +1,7 @@
 package v1
 
 import (
-	"math/rand"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	. "github.com/go-jet/jet/v2/postgres"
@@ -12,7 +10,10 @@ import (
 
 	"github.com/tetrago/motmot/api/.gen/motmot/public/model"
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
+	"github.com/tetrago/motmot/api/util"
 )
+
+const userIdentifierLength = 16
 
 // User godoc
 // @Summary Fetch user
@@ -70,11 +71,14 @@ func User(g *gin.Context) {
 }
 
 func GetIdentifier() (string, error) {
-generate:
-	ident := strconv.FormatUint(rand.Uint64(), 16)
-
 	var dest struct {
 		model.UserAccount
+	}
+
+generate:
+	ident, err := util.GenerateBase64(userIdentifierLength)
+	if err != nil {
+		return "", err
 	}
 
 	stmt := SELECT(UserAccount.Identifier).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(ident))).LIMIT(1)
@@ -92,7 +96,7 @@ generate:
 type registerRequest struct {
 	DisplayName string `json:"display_name"`
 	Email       string `json:"email"`
-	Hash        string `json:"hash"`
+	Password    string `json:"hash"`
 }
 
 // Register godoc
@@ -102,6 +106,7 @@ type registerRequest struct {
 // @Produce json
 // @Consume json
 // @Success 200 {object} UserModel
+// @Failure 400
 // @Failure 500
 // @Param request body registerRequest true "User registration information"
 // @Router /v1/user/register [post]
@@ -109,7 +114,7 @@ func Register(g *gin.Context) {
 	var request registerRequest
 
 	if err := g.BindJSON(&request); err != nil {
-		g.Status(http.StatusInternalServerError)
+		g.Status(http.StatusBadRequest)
 		return
 	}
 
@@ -125,7 +130,7 @@ func Register(g *gin.Context) {
 		MODEL(model.UserAccount{
 			Identifier:  ident,
 			DisplayName: request.DisplayName,
-			Hash:        request.Hash,
+			Hash:        util.Hash(request.Password),
 			Email:       request.Email,
 		}).
 		RETURNING(UserAccount.AllColumns)

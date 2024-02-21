@@ -62,7 +62,7 @@ func newUserRoomTableImpl(schemaName, tableName, alias string) userRoomTable {
 		UserIDColumn   = postgres.IntegerColumn("user_id")
 		RoomIDColumn   = postgres.IntegerColumn("room_id")
 		allColumns     = postgres.ColumnList{UserIDColumn, RoomIDColumn}
-		mutableColumns = postgres.ColumnList{UserIDColumn, RoomIDColumn}
+		mutableColumns = postgres.ColumnList{}
 	)
 
 	return userRoomTable{
