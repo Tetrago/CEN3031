@@ -343,6 +343,42 @@
                     }
                 }
             }
+        },
+        "/ws": {
+            "get": {
+                "description": "Opens a WebSocket for a user on a group",
+                "tags": [
+                    "ws"
+                ],
+                "summary": "Opens a WebSocket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authentication token",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Active group ID",
+                        "name": "group",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "502": {
+                        "description": "Bad Gateway"
+                    }
+                }
+            }
         }
     },
     "definitions": {
