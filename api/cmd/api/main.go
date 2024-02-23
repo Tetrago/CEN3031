@@ -62,7 +62,7 @@ func setupRouter() *gin.Engine {
 	CourseHandler(g.Group("/course"))
 	GroupHandler(g.Group("/group"))
 	UserHandler(g.Group("/user"))
-	WSHandler(g.Group("/ws"))
+	g.GET("/ws", wsGet)
 
 	if Debug {
 		docs.SwaggerInfo.BasePath = endpoint
