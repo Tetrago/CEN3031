@@ -218,6 +218,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/history/{id}": {
+            "get": {
+                "description": "Gets message history from a group in descending order",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "group"
+                ],
+                "summary": "Gets group messages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max number of messages to retreive (\u003c= 20)",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "UTC time cutoff; searches in reverse from this point (inclusive)",
+                        "name": "before",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.groupHistoryResponseItem"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/bio": {
             "post": {
                 "description": "Updates a user's bio",
@@ -379,9 +428,6 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "202": {
-                        "description": "Accepted"
-                    },
                     "400": {
                         "description": "Bad Request"
                     },
@@ -452,6 +498,23 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.groupHistoryResponseItem": {
+            "type": "object",
+            "properties": {
+                "contents": {
+                    "type": "string"
+                },
+                "iat": {
+                    "type": "integer"
+                },
+                "message_id": {
+                    "type": "integer"
+                },
+                "user_ident": {
                     "type": "string"
                 }
             }

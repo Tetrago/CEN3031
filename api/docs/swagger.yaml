@@ -39,6 +39,17 @@ definitions:
       name:
         type: string
     type: object
+  main.groupHistoryResponseItem:
+    properties:
+      contents:
+        type: string
+      iat:
+        type: integer
+      message_id:
+        type: integer
+      user_ident:
+        type: string
+    type: object
   main.userBioRequest:
     properties:
       bio:
@@ -223,6 +234,39 @@ paths:
       summary: Get group
       tags:
       - group
+  /group/history/{id}:
+    get:
+      description: Gets message history from a group in descending order
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Max number of messages to retreive (<= 20)
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: UTC time cutoff; searches in reverse from this point (inclusive)
+        in: query
+        name: before
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.groupHistoryResponseItem'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: Gets group messages
+      tags:
+      - group
   /user/bio:
     post:
       description: Updates a user's bio
@@ -327,8 +371,6 @@ paths:
         required: true
         type: integer
       responses:
-        "202":
-          description: Accepted
         "400":
           description: Bad Request
         "502":
