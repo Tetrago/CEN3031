@@ -90,7 +90,84 @@ func groupGet(g *gin.Context) {
 	})
 }
 
+type groupHistoryResponseItem struct {
+	ID         int64  `json:"message_id"`
+	Identifier string `json:"user_ident"`
+	Contents   string `json:"contents"`
+	IssuedAt   int64  `json:"iat"`
+}
+
+// History godoc
+// @Summary Gets group messages
+// @Description Gets message history from a group in descending order
+// @Tags group
+// @Produce json
+// @Success 200 {array} groupHistoryResponseItem
+// @Failure 500
+// @Param id     path  int64 true "Group ID"
+// @Param limit  query int64 true "Max number of messages to retreive (<= 20)"
+// @Param before query int64 true "UTC time cutoff; searches in reverse from this point (inclusive)"
+// @Router /group/history/{id} [get]
+func groupHistory(g *gin.Context) {
+	var uri struct {
+		ID int64 `uri:"id" binding:"required"`
+	}
+
+	if err := g.ShouldBindUri(&uri); err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	var request struct {
+		Limit  int64 `form:"limit" binding:"required"`
+		Before int64 `form:"before" binding:"required"`
+	}
+
+	if err := g.BindQuery(&request); err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	if request.Limit > 20 {
+		request.Limit = 20
+	}
+
+	stmt := SELECT(
+		RoomMessage.ID, RoomMessage.Contents, RoomMessage.Iat,
+		UserAccount.Identifier,
+	).FROM(
+		RoomMessage.INNER_JOIN(UserAccount, RoomMessage.UserID.EQ(UserAccount.ID)),
+	).WHERE(
+		RoomMessage.RoomID.EQ(Int64(uri.ID)).AND(RoomMessage.Iat.LT_EQ(Int64(request.Before))),
+	).ORDER_BY(RoomMessage.Iat.DESC()).LIMIT(request.Limit)
+
+	var dest []struct {
+		model.RoomMessage
+
+		User model.UserAccount
+	}
+
+	if err := stmt.Query(Database, &dest); err != nil && err != qrm.ErrNoRows {
+		fmt.Printf("[/group/history] Error querying database: %s\n", err.Error())
+		g.Status(http.StatusInternalServerError)
+		return
+	}
+
+	g.JSON(http.StatusOK, lo.Map(dest, func(x struct {
+		model.RoomMessage
+		User model.UserAccount
+	}, _ int) groupHistoryResponseItem {
+		return groupHistoryResponseItem{
+			x.ID,
+			x.User.Identifier,
+			x.Contents,
+			x.Iat,
+		}
+	}))
+}
+
 func GroupHandler(r *gin.RouterGroup) {
 	r.GET("/all", groupAll)
 	r.GET("/get/:id", groupGet)
+	r.GET("/history/:id", groupHistory)
 }

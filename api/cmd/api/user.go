@@ -142,6 +142,18 @@ func userRegister(g *gin.Context) {
 		return
 	}
 
+	var models []model.UserAccount
+	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Email.EQ(String(request.Email))).Query(Database, &models); err != nil {
+		if err != qrm.ErrNoRows {
+			fmt.Printf("[/user/register] Error querying database: %s\n", err.Error())
+			g.Status(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
 	var dest model.UserAccount
 
 	stmt := UserAccount.INSERT(UserAccount.Identifier, UserAccount.DisplayName, UserAccount.Hash, UserAccount.Email).
@@ -156,6 +168,7 @@ func userRegister(g *gin.Context) {
 	if err := stmt.Query(Database, &dest); err != nil {
 		fmt.Printf("[/user/register] Error querying database: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
+		return
 	}
 
 	g.JSON(http.StatusOK, userRegisterResponse{dest.Identifier})

@@ -9,6 +9,7 @@ import (
 	. "github.com/go-jet/jet/v2/postgres"
 	"github.com/go-jet/jet/v2/qrm"
 	"github.com/gorilla/websocket"
+	"github.com/samber/lo"
 
 	"github.com/tetrago/motmot/api/.gen/motmot/public/model"
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
@@ -17,26 +18,69 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-func websocketHandler(user int64, group int64, conn *websocket.Conn) {
-	quit := make(chan bool)
-	sendMessage := make(chan string)
+type message struct {
+	Identifier string `json:"user_ident"`
+	Contents   string `json:"contents"`
+	IssuedAt   int64  `json:"iat"`
+}
+
+var channels = make(map[int64][]chan<- message)
+
+func wsHandler(ident string, user int64, group int64, conn *websocket.Conn) {
+	defer conn.Close()
+
+	quit := make(chan int)
+	recv := make(chan message)
+
+	if _, ok := channels[group]; !ok {
+		channels[group] = []chan<- message{recv}
+	} else {
+		channels[group] = append(channels[group], recv)
+	}
 
 	go func() {
-		for !<-quit {
-			t, p, err := conn.ReadMessage()
-			if err != nil || t == websocket.CloseMessage {
-				quit <- true
+		for {
+			select {
+			case <-quit:
+				return
+			case message := <-recv:
+				if err := conn.WriteJSON(message); err != nil {
+					quit <- 0
+					return
+				}
 			}
-
-			sendMessage <- string(p)
 		}
 	}()
 
-	go func() {
-		for !<-quit {
-			message := <-sendMessage
+loop:
+	for {
+		select {
+		case <-quit:
+			break loop
+		default:
+			t, p, err := conn.ReadMessage()
+			if err != nil || t == websocket.CloseMessage {
+				quit <- 0
+				break loop
+			}
+
+			contents := string(p)
+			iat := time.Now().Unix()
+
+			go func() {
+				for _, v := range channels[group] {
+					if v != recv {
+						v <- message{
+							ident,
+							contents,
+							iat,
+						}
+					}
+				}
+			}()
 
 			stmt := RoomMessage.INSERT(
 				RoomMessage.UserID,
@@ -46,15 +90,22 @@ func websocketHandler(user int64, group int64, conn *websocket.Conn) {
 			).MODEL(model.RoomMessage{
 				UserID:   user,
 				RoomID:   group,
-				Contents: message,
-				Iat:      time.Now().Unix(),
+				Contents: contents,
+				Iat:      iat,
 			})
 
 			if _, err := stmt.Exec(Database); err != nil {
-				quit <- true
+				quit <- 0
+				break loop
 			}
 		}
-	}()
+	}
+
+	if _, index, ok := lo.FindIndexOf(channels[group], func(x chan<- message) bool { return x == recv }); !ok {
+		panic("Channel bus mismatch!")
+	} else {
+		channels[group] = append(channels[group][:index], channels[group][index+1:]...)
+	}
 }
 
 // WebSocket godoc
@@ -62,16 +113,15 @@ func websocketHandler(user int64, group int64, conn *websocket.Conn) {
 // @Description Opens a WebSocket for a user on a group
 // @Tags ws
 // @Consume json
-// @Success 202
 // @Failure 400
 // @Failure 502
 // @Param token query string true "Authentication token"
-// @Param group query int64 true "Active group ID"
+// @Param group query int64  true "Active group ID"
 // @Router /ws [get]
-func ws(g *gin.Context) {
+func wsGet(g *gin.Context) {
 	var request struct {
-		Token   string `json:"token"`
-		GroupID int64  `json:"group"`
+		Token   string `form:"token" binding:"required"`
+		GroupID int64  `form:"group" binding:"required"`
 	}
 
 	if err := g.BindQuery(&request); err != nil {
@@ -98,14 +148,8 @@ func ws(g *gin.Context) {
 
 	conn, err := upgrader.Upgrade(g.Writer, g.Request, nil)
 	if err != nil {
-		g.Status(http.StatusBadGateway)
 		return
 	}
 
-	go websocketHandler(user.ID, request.GroupID, conn)
-	g.Status(http.StatusAccepted)
-}
-
-func WSHandler(r *gin.RouterGroup) {
-	r.GET("/", ws)
+	go wsHandler(token.Ident, user.ID, request.GroupID, conn)
 }
