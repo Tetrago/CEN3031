@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jessevdk/go-flags"
 	_ "github.com/lib/pq"
@@ -56,6 +57,8 @@ func setupRouter() *gin.Engine {
 	}
 
 	r := gin.Default()
+	r.Use(cors.Default())
+
 	g := r.Group(endpoint)
 
 	AuthHandler(g.Group("/auth"))
