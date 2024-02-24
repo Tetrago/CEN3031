@@ -25,7 +25,14 @@ docker compose down
 The frontend resides in the "www" folder. In order to run the front end, make sure you have Node.js installed and run the following command.
 
 ```bash
+npm install # Only needed the first time
 npm run dev
 ```
 
 Then go to the url printed in the terminal.
+
+## Resources
+
+- [Tailwind CSS](https://tailwindcss.com/docs/flex-basis)
+- [daisyUI](https://daisyui.com/components/)
+- [SvelteKit Docs](https://kit.svelte.dev/docs/routing)
