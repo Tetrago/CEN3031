@@ -3,9 +3,11 @@
 </svelte:head>
 
 <script>
+	import Navbar from '$lib/components/Navbar.svelte';
 	import '../app.pcss';
 </script>
 
-<div class="container mx-auto p-4">
+<div class="container mx-auto">
+	<Navbar />
 	<slot />
 </div>

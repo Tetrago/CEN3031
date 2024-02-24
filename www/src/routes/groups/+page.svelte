@@ -14,7 +14,7 @@
 </script>
 
 <div class="join flex justify-center">
-    <input on:change={() => groupsPromise = departmentChanged()} bind:value={departmentField} type="text" maxlength="3" class="join-item input input-bordered w-full max-w-40" placeholder="COP" />
+    <input on:change={() => groupsPromise = departmentChanged()} bind:value={departmentField} type="text" maxlength="3" class="join-item input input-bordered w-full max-w-40 text-right" placeholder="CEN" />
     <input type="text" bind:value={codeField} maxlength="5" class="join-item input input-bordered w-full max-w-80" placeholder="3031" />
 </div>
 
