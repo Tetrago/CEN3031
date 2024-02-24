@@ -1,24 +1,9 @@
 definitions:
   main.authLoginRequest:
     properties:
-      ident:
+      email:
         type: string
       password:
-        type: string
-    type: object
-  main.authLoginResponse:
-    properties:
-      token:
-        type: string
-    type: object
-  main.authRenewRequest:
-    properties:
-      token:
-        type: string
-    type: object
-  main.authRenewResponse:
-    properties:
-      token:
         type: string
     type: object
   main.groupAllResponseItem:
@@ -54,8 +39,6 @@ definitions:
     properties:
       bio:
         type: string
-      token:
-        type: string
     type: object
   main.userGetResponse:
     properties:
@@ -81,14 +64,10 @@ definitions:
     properties:
       group_id:
         type: integer
-      token:
-        type: string
     type: object
   main.userProfilePicturePostRequest:
     properties:
       jpeg:
-        type: string
-      token:
         type: string
     type: object
   main.userRegisterRequest:
@@ -123,37 +102,11 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/main.authLoginResponse'
         "400":
           description: Bad Request
         "500":
           description: Internal Server Error
       summary: Login user
-      tags:
-      - auth
-  /auth/renew:
-    post:
-      description: Renews token, preventing timeouts
-      parameters:
-      - description: Token to renew
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/main.authRenewRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/main.authRenewResponse'
-        "400":
-          description: Bad Request
-        "500":
-          description: Internal Server Error
-      summary: Renew token
       tags:
       - auth
   /course/department/{dep}:
@@ -291,6 +244,8 @@ paths:
           description: OK
         "400":
           description: Bad Request
+        "401":
+          description: Unauthorized
         "500":
           description: Internal Server Error
       summary: Updates bio
@@ -334,6 +289,8 @@ paths:
           description: OK
         "400":
           description: Bad Request
+        "401":
+          description: Unauthorized
         "500":
           description: Internal Server Error
       summary: Join group
@@ -354,6 +311,8 @@ paths:
           description: OK
         "400":
           description: Bad Request
+        "401":
+          description: Unauthorized
         "500":
           description: Internal Server Error
       summary: Upload profile picture
@@ -404,14 +363,18 @@ paths:
       summary: Register a new user
       tags:
       - user
-  /ws:
+  /ws/{group}:
     get:
       description: Opens a WebSocket for a user on a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: group
+        required: true
+        type: integer
       responses:
-        "400":
-          description: Bad Request
-        "502":
-          description: Bad Gateway
+        "401":
+          description: Unauthorized
       summary: Opens a WebSocket
       tags:
       - ws

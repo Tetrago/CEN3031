@@ -178,8 +178,7 @@ func userRegister(g *gin.Context) {
 }
 
 type userBioRequest struct {
-	Token string `json:"token"`
-	Bio   string `json:"bio"`
+	Bio string `json:"bio"`
 }
 
 // Bio godoc
@@ -190,17 +189,24 @@ type userBioRequest struct {
 // @Consume json
 // @Success 200
 // @Failure 400
+// @Failure 401
 // @Failure 500
 // @Param request body userBioRequest true "User token and new bio"
 // @Router /user/bio [post]
 func userBio(g *gin.Context) {
+	cookie, err := g.Cookie("token")
+	if err != nil {
+		g.Status(http.StatusUnauthorized)
+		return
+	}
+
 	var request userBioRequest
 	if err := g.BindJSON(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	token, err := ProcessToken(request.Token)
+	token, err := ProcessToken(cookie)
 	if err != nil {
 		g.Status(http.StatusBadRequest)
 		return
@@ -219,8 +225,7 @@ func userBio(g *gin.Context) {
 }
 
 type userJoinRequest struct {
-	Token   string `json:"token"`
-	GroupID int64  `json:"group_id"`
+	GroupID int64 `json:"group_id"`
 }
 
 // Join godoc
@@ -230,17 +235,24 @@ type userJoinRequest struct {
 // @Consume json
 // @Success 200
 // @Failure 400
+// @Failure 401
 // @Failure 500
 // @Param request body userJoinRequest true "User token and group to join"
 // @Router /user/join [post]
 func userJoin(g *gin.Context) {
+	cookie, err := g.Cookie("token")
+	if err != nil {
+		g.Status(http.StatusUnauthorized)
+		return
+	}
+
 	var request userJoinRequest
 	if err := g.BindJSON(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	token, err := ProcessToken(request.Token)
+	token, err := ProcessToken(cookie)
 	if err != nil {
 		g.Status(http.StatusBadRequest)
 		return
@@ -286,7 +298,6 @@ func userJoin(g *gin.Context) {
 }
 
 type userProfilePicturePostRequest struct {
-	Token string `json:"token"`
 	Image string `json:"jpeg"`
 }
 
@@ -297,17 +308,24 @@ type userProfilePicturePostRequest struct {
 // @Consume json
 // @Success 200
 // @Failure 400
+// @Failure 401
 // @Failure 500
 // @Param request body userProfilePicturePostRequest true "User token and profile picture"
 // @Router /user/profile_picture [post]
 func userProfilePicturePost(g *gin.Context) {
+	cookie, err := g.Cookie("token")
+	if err != nil {
+		g.Status(http.StatusUnauthorized)
+		return
+	}
+
 	var request userProfilePicturePostRequest
 	if err := g.BindJSON(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	token, err := ProcessToken(request.Token)
+	token, err := ProcessToken(cookie)
 	if err != nil {
 		g.Status(http.StatusBadRequest)
 		return

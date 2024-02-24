@@ -13,12 +13,8 @@ import (
 )
 
 type authLoginRequest struct {
-	Identifier string `json:"ident"`
-	Password   string `json:"password"`
-}
-
-type authLoginResponse struct {
-	Token string `json:"token"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 // Login godoc
@@ -27,7 +23,7 @@ type authLoginResponse struct {
 // @Tags auth
 // @Produce json
 // @Consume json
-// @Success 200 {object} authLoginResponse
+// @Success 200
 // @Failure 400
 // @Failure 500
 // @Param request body authLoginRequest true "User login information"
@@ -40,7 +36,7 @@ func authLogin(g *gin.Context) {
 	}
 
 	var dest model.UserAccount
-	stmt := SELECT(UserAccount.Identifier, UserAccount.Hash).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(request.Identifier)))
+	stmt := SELECT(UserAccount.Identifier, UserAccount.Hash).FROM(UserAccount).WHERE(UserAccount.Email.EQ(String(request.Email)))
 
 	if err := stmt.Query(Database, &dest); err != nil {
 		switch err {
@@ -59,53 +55,15 @@ func authLogin(g *gin.Context) {
 		return
 	}
 
-	if str, err := MakeToken(TokenContents{Identifier: request.Identifier}); err != nil {
+	if str, err := MakeToken(TokenContents{Identifier: dest.Identifier}); err != nil {
 		fmt.Printf("[/auth/login] Error making token: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	} else {
-		g.JSON(http.StatusOK, authLoginResponse{str})
-	}
-}
-
-type authRenewRequest struct {
-	Token string `json:"token"`
-}
-
-type authRenewResponse struct {
-	Token string `json:"token"`
-}
-
-// Renew godoc
-// @Summary Renew token
-// @Description Renews token, preventing timeouts
-// @Tags auth
-// @Produce json
-// @Consume json
-// @Success 200 {object} authRenewResponse
-// @Failure 400
-// @Failure 500
-// @Param request body authRenewRequest true "Token to renew"
-// @Router /auth/renew [post]
-func authRenew(g *gin.Context) {
-	var request authRenewRequest
-	if err := g.BindJSON(&request); err != nil {
-		g.Status(http.StatusBadRequest)
-		return
-	}
-
-	if contents, err := ProcessToken(request.Token); err != nil {
-		g.Status(http.StatusBadRequest)
-	} else {
-		if str, err := MakeToken(*contents); err != nil {
-			fmt.Printf("[/auth/renew] Error making token: %s\n", err.Error())
-			g.Status(http.StatusInternalServerError)
-		} else {
-			g.JSON(http.StatusOK, authRenewResponse{str})
-		}
+		g.SetCookie("token", str, 86400, "/", Routing.Hostname, false, true)
+		g.Status(http.StatusOK)
 	}
 }
 
 func AuthHandler(r *gin.RouterGroup) {
 	r.POST("/login", authLogin)
-	r.POST("/renew", authRenew)
 }

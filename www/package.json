@@ -36,6 +36,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"cookie": "^0.6.0",
 		"jwt-decode": "^4.0.0"
 	}
 }

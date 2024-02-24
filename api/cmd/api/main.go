@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/gin-contrib/cors"
@@ -44,12 +45,26 @@ func setupDatabase() *sql.DB {
 	return db
 }
 
+var Routing struct {
+	Hostname string
+	Endpoint string
+}
+
 func setupRouter() *gin.Engine {
-	var endpoint string
-	if e, ok := os.LookupEnv("ENDPOINT"); !ok {
-		endpoint = "/api"
+	env, ok := os.LookupEnv("ENDPOINT")
+	if !ok {
+		fmt.Println("Endpoint unknown")
+		os.Exit(1)
+	}
+
+	re := regexp.MustCompile(`^http://([^/]+)(/.+)/?$`)
+	if match := re.FindStringSubmatch(env); match == nil {
+		fmt.Println("Could not determine hostname and path from endpoint")
+		os.Exit(1)
 	} else {
-		endpoint = e
+		Routing.Hostname = match[1]
+		Routing.Endpoint = match[2]
+		fmt.Printf("Hosting on `%s` at endpoint `%s`\n", Routing.Hostname, Routing.Endpoint)
 	}
 
 	if !Debug {
@@ -59,16 +74,16 @@ func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	g := r.Group(endpoint)
+	g := r.Group(Routing.Endpoint)
 
 	AuthHandler(g.Group("/auth"))
 	CourseHandler(g.Group("/course"))
 	GroupHandler(g.Group("/group"))
 	UserHandler(g.Group("/user"))
-	g.GET("/ws", wsGet)
+	g.GET("/ws/:group", wsGet)
 
 	if Debug {
-		docs.SwaggerInfo.BasePath = endpoint
+		docs.SwaggerInfo.BasePath = Routing.Endpoint
 		g.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}
 

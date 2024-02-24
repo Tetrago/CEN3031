@@ -11,7 +11,7 @@ services:
       - DATABASE_HOSTNAME=db
       - DATABASE_PASSWORD=file:///run/secrets/db_password
       - SECRET=file:///run/secrets/api_secret
-      - ENDPOINT=/api/v1
+      - ENDPOINT=http://localhost/api/v1
     ports:
       - '127.0.0.1:3000:8080'
     volumes:
