@@ -38,47 +38,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.authLoginResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
-        "/auth/renew": {
-            "post": {
-                "description": "Renews token, preventing timeouts",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Renew token",
-                "parameters": [
-                    {
-                        "description": "Token to renew",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.authRenewRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.authRenewResponse"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request"
@@ -295,6 +255,9 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request"
                     },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
                     "500": {
                         "description": "Internal Server Error"
                     }
@@ -361,6 +324,9 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request"
                     },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
                     "500": {
                         "description": "Internal Server Error"
                     }
@@ -391,6 +357,9 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -467,19 +436,25 @@ const docTemplate = `{
                 }
             }
         },
-        "/ws": {
+        "/ws/{group}": {
             "get": {
                 "description": "Opens a WebSocket for a user on a group",
                 "tags": [
                     "ws"
                 ],
                 "summary": "Opens a WebSocket",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Group ID",
+                        "name": "group",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "502": {
-                        "description": "Bad Gateway"
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
@@ -489,34 +464,10 @@ const docTemplate = `{
         "main.authLoginRequest": {
             "type": "object",
             "properties": {
-                "ident": {
+                "email": {
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.authLoginResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.authRenewRequest": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.authRenewResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
                     "type": "string"
                 }
             }
@@ -571,9 +522,6 @@ const docTemplate = `{
             "properties": {
                 "bio": {
                     "type": "string"
-                },
-                "token": {
-                    "type": "string"
                 }
             }
         },
@@ -613,9 +561,6 @@ const docTemplate = `{
             "properties": {
                 "group_id": {
                     "type": "integer"
-                },
-                "token": {
-                    "type": "string"
                 }
             }
         },
@@ -623,9 +568,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "jpeg": {
-                    "type": "string"
-                },
-                "token": {
                     "type": "string"
                 }
             }
