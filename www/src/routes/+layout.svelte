@@ -10,7 +10,7 @@
 	/** @type {import('./$types').LayoutData} */
 	export let data;
 
-	user_identifier.set(data.ident);
+	$: user_identifier.set(data.ident);
 </script>
 
 <div class="container mx-auto">
