@@ -29,16 +29,39 @@ type message struct {
 
 var channels = make(map[int64][]chan<- message)
 
-func wsHandler(ident string, user int64, group int64, conn *websocket.Conn) {
+func wsHandler(conn *websocket.Conn) {
 	defer conn.Close()
+
+	var handshake struct {
+		Token   string `form:"token" binding:"required"`
+		GroupID int64  `form:"group" binding:"required"`
+	}
+
+	if err := conn.ReadJSON(&handshake); err != nil {
+		return
+	}
+
+	token, err := ProcessToken(handshake.Token)
+	if err != nil {
+		return
+	}
+
+	var user model.UserAccount
+	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.Ident))).Query(Database, &user); err != nil {
+		if err != qrm.ErrNoRows {
+			fmt.Printf("[/ws] Failed to query database: %s\n", err.Error())
+		}
+
+		return
+	}
 
 	quit := make(chan int)
 	recv := make(chan message)
 
-	if _, ok := channels[group]; !ok {
-		channels[group] = []chan<- message{recv}
+	if _, ok := channels[handshake.GroupID]; !ok {
+		channels[handshake.GroupID] = []chan<- message{recv}
 	} else {
-		channels[group] = append(channels[group], recv)
+		channels[handshake.GroupID] = append(channels[handshake.GroupID], recv)
 	}
 
 	go func() {
@@ -71,10 +94,10 @@ loop:
 			iat := time.Now().Unix()
 
 			go func() {
-				for _, v := range channels[group] {
+				for _, v := range channels[handshake.GroupID] {
 					if v != recv {
 						v <- message{
-							ident,
+							token.Ident,
 							contents,
 							iat,
 						}
@@ -88,8 +111,8 @@ loop:
 				RoomMessage.Contents,
 				RoomMessage.Iat,
 			).MODEL(model.RoomMessage{
-				UserID:   user,
-				RoomID:   group,
+				UserID:   user.ID,
+				RoomID:   handshake.GroupID,
 				Contents: contents,
 				Iat:      iat,
 			})
@@ -101,10 +124,10 @@ loop:
 		}
 	}
 
-	if _, index, ok := lo.FindIndexOf(channels[group], func(x chan<- message) bool { return x == recv }); !ok {
+	if _, index, ok := lo.FindIndexOf(channels[handshake.GroupID], func(x chan<- message) bool { return x == recv }); !ok {
 		panic("Channel bus mismatch!")
 	} else {
-		channels[group] = append(channels[group][:index], channels[group][index+1:]...)
+		channels[handshake.GroupID] = append(channels[handshake.GroupID][:index], channels[handshake.GroupID][index+1:]...)
 	}
 }
 
@@ -115,41 +138,12 @@ loop:
 // @Consume json
 // @Failure 400
 // @Failure 502
-// @Param token query string true "Authentication token"
-// @Param group query int64  true "Active group ID"
 // @Router /ws [get]
 func wsGet(g *gin.Context) {
-	var request struct {
-		Token   string `form:"token" binding:"required"`
-		GroupID int64  `form:"group" binding:"required"`
-	}
-
-	if err := g.BindQuery(&request); err != nil {
-		g.Status(http.StatusBadRequest)
-		return
-	}
-
-	token, err := ProcessToken(request.Token)
-	if err != nil {
-		g.Status(http.StatusBadRequest)
-		return
-	}
-
-	var user model.UserAccount
-	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.Ident))).Query(Database, &user); err != nil {
-		switch err {
-		default:
-			fmt.Printf("[/ws] Failed to query database: %s\n", err.Error())
-			g.Status(http.StatusInternalServerError)
-		case qrm.ErrNoRows:
-			g.Status(http.StatusBadRequest)
-		}
-	}
-
 	conn, err := upgrader.Upgrade(g.Writer, g.Request, nil)
 	if err != nil {
 		return
 	}
 
-	go wsHandler(token.Ident, user.ID, request.GroupID, conn)
+	go wsHandler(conn)
 }
