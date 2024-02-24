@@ -84,6 +84,13 @@ definitions:
       token:
         type: string
     type: object
+  main.userProfilePicturePostRequest:
+    properties:
+      jpeg:
+        type: string
+      token:
+        type: string
+    type: object
   main.userRegisterRequest:
     properties:
       display_name:
@@ -332,6 +339,47 @@ paths:
       summary: Join group
       tags:
       - user
+  /user/profile_picture:
+    post:
+      description: Uploads a new profile picture, replacing the old one
+      parameters:
+      - description: User token and profile picture
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.userProfilePicturePostRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Upload profile picture
+      tags:
+      - user
+  /user/profile_picture/{ident}:
+    get:
+      description: Gets a user's profile picture from their identifier
+      parameters:
+      - description: User identifier
+        in: path
+        name: ident
+        required: true
+        type: string
+      produces:
+      - image/jpeg
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Retrieves profile picture
+      tags:
+      - user
   /user/register:
     post:
       description: Registers a new user given the provided arguments
@@ -359,17 +407,6 @@ paths:
   /ws:
     get:
       description: Opens a WebSocket for a user on a group
-      parameters:
-      - description: Authentication token
-        in: query
-        name: token
-        required: true
-        type: string
-      - description: Active group ID
-        in: query
-        name: group
-        required: true
-        type: integer
       responses:
         "400":
           description: Bad Request

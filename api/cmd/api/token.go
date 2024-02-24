@@ -8,7 +8,7 @@ import (
 )
 
 type TokenContents struct {
-	Ident string `json:"ident"`
+	Identifier string `json:"ident"`
 }
 
 func MakeToken(contents TokenContents) (string, error) {
@@ -39,7 +39,7 @@ func ProcessToken(str string) (*TokenContents, error) {
 		}
 
 		return &TokenContents{
-			Ident: claims["contents"].(map[string]interface{})["ident"].(string),
+			Identifier: claims["contents"].(map[string]interface{})["ident"].(string),
 		}, nil
 	} else {
 		return nil, err
