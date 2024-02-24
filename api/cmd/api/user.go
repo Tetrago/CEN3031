@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	. "github.com/go-jet/jet/v2/postgres"
@@ -142,7 +145,7 @@ func userRegister(g *gin.Context) {
 		return
 	}
 
-	var models []model.UserAccount
+	var models model.UserAccount
 	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Email.EQ(String(request.Email))).Query(Database, &models); err != nil {
 		if err != qrm.ErrNoRows {
 			fmt.Printf("[/user/register] Error querying database: %s\n", err.Error())
@@ -205,7 +208,7 @@ func userBio(g *gin.Context) {
 
 	stmt := UserAccount.UPDATE(UserAccount.Bio).MODEL(model.UserAccount{
 		Bio: &request.Bio,
-	}).WHERE(UserAccount.Identifier.EQ(String(token.Ident)))
+	}).WHERE(UserAccount.Identifier.EQ(String(token.Identifier)))
 
 	if _, err := stmt.Exec(Database); err != nil {
 		fmt.Printf("[/user/bio] Failed to execute query on database: %s\n", err.Error())
@@ -244,7 +247,7 @@ func userJoin(g *gin.Context) {
 	}
 
 	var user model.UserAccount
-	if err := UserAccount.SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.Ident))).Query(Database, &user); err != nil {
+	if err := UserAccount.SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.Identifier))).Query(Database, &user); err != nil {
 		switch err {
 		default:
 			fmt.Printf("[/user/join] Failed query database: %s\n", err.Error())
@@ -282,9 +285,107 @@ func userJoin(g *gin.Context) {
 	}
 }
 
+type userProfilePicturePostRequest struct {
+	Token string `json:"token"`
+	Image string `json:"jpeg"`
+}
+
+// Profile Picture godoc
+// @Summary Upload profile picture
+// @Description Uploads a new profile picture, replacing the old one
+// @Tags user
+// @Consume json
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Param request body userProfilePicturePostRequest true "User token and profile picture"
+// @Router /user/profile_picture [post]
+func userProfilePicturePost(g *gin.Context) {
+	var request userProfilePicturePostRequest
+	if err := g.BindJSON(&request); err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	token, err := ProcessToken(request.Token)
+	if err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	var user model.UserAccount
+	if err := UserAccount.SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.Identifier))).Query(Database, &user); err != nil {
+		switch err {
+		default:
+			fmt.Printf("[/user/profile_picture] Failed query database: %s\n", err.Error())
+			g.Status(http.StatusInternalServerError)
+		case qrm.ErrNoRows:
+			g.Status(http.StatusBadRequest)
+		}
+
+		return
+	}
+
+	data, err := hex.DecodeString(request.Image)
+	if err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	file, err := os.Create(filepath.Join(Options.ImageStore, token.Identifier))
+	if err != nil {
+		fmt.Printf("[/user/profile_picture] Failed to create file: %s\n", err.Error())
+		g.Status(http.StatusInternalServerError)
+		return
+	}
+
+	if err := file.Truncate(0); err != nil {
+		fmt.Printf("[/user/profile_picture] Failed to truncate file: %s\n", err.Error())
+		g.Status(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := file.Write(data); err != nil {
+		fmt.Printf("[/user/profile_picture] Failed to write file: %s\n", err.Error())
+		g.Status(http.StatusInternalServerError)
+		return
+	}
+
+	g.Status(http.StatusOK)
+}
+
+// Profile Picture godoc
+// @Summary Retrieves profile picture
+// @Description Gets a user's profile picture from their identifier
+// @Tags user
+// @Produce jpeg
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Param ident path string true "User identifier"
+// @Router /user/profile_picture/{ident} [get]
+func userProfilePictureGet(g *gin.Context) {
+	var uri struct {
+		Identifier string `uri:"ident" binding:"required"`
+	}
+
+	if err := g.ShouldBindUri(&uri); err != nil {
+		g.Status(http.StatusBadRequest)
+		return
+	}
+
+	if data, err := os.ReadFile(filepath.Join(Options.ImageStore, uri.Identifier)); err != nil {
+		g.Status(http.StatusBadRequest)
+	} else {
+		g.Data(http.StatusOK, "image/jpeg", data)
+	}
+}
+
 func UserHandler(r *gin.RouterGroup) {
 	r.GET("/get/:ident", userGet)
 	r.POST("/register", userRegister)
 	r.POST("/bio", userBio)
 	r.POST("/join", userJoin)
+	r.POST("/profile_picture", userProfilePicturePost)
+	r.GET("/profile_picture/:ident", userProfilePictureGet)
 }
