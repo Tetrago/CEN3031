@@ -10,12 +10,12 @@
             </div>
         </div>
 
-        <p class="ml-1 cursor-default text-2xl">Motmot</p>
+        <p class="ml-1 cursor-default text-2xl font-bold select-none">Motmot</p>
     </div>
 
     <div class="navbar-end lg:flex">
         <ul class="menu menu-horizontal px-1 mr-1">
-            <li><a href="/groups" class="rounded-full">Courses</a></li>
+            <li><a href="/courses" class="rounded-full font-bold">Courses</a></li>
         </ul>
     </div>
 </div>
