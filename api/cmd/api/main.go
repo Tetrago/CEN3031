@@ -83,6 +83,7 @@ var Options struct {
 	DatabasePassword string `short:"p" long:"password" description:"Password of database user (use file:// to reference a file)" required:"true"`
 	Port             int    `short:"s" long:"server" description:"Port API is served from" default:"8080"`
 	Secret           string `short:"x" long:"secret" description:"API key secret (use file:// to reference a file)" required:"true"`
+	ImageStore       string `short:"i" long:"images" description:"Path to folder used as image store" required:"true"`
 }
 
 func parseSecret(key string) ([]byte, error) {

@@ -356,6 +356,69 @@
                 }
             }
         },
+        "/user/profile_picture": {
+            "post": {
+                "description": "Uploads a new profile picture, replacing the old one",
+                "tags": [
+                    "user"
+                ],
+                "summary": "Upload profile picture",
+                "parameters": [
+                    {
+                        "description": "User token and profile picture",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.userProfilePicturePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/user/profile_picture/{ident}": {
+            "get": {
+                "description": "Gets a user's profile picture from their identifier",
+                "produces": [
+                    "image/jpeg"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Retrieves profile picture",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User identifier",
+                        "name": "ident",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/register": {
             "post": {
                 "description": "Registers a new user given the provided arguments",
@@ -400,22 +463,6 @@
                     "ws"
                 ],
                 "summary": "Opens a WebSocket",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authentication token",
-                        "name": "token",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Active group ID",
-                        "name": "group",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "400": {
                         "description": "Bad Request"
@@ -555,6 +602,17 @@
             "properties": {
                 "group_id": {
                     "type": "integer"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.userProfilePicturePostRequest": {
+            "type": "object",
+            "properties": {
+                "jpeg": {
+                    "type": "string"
                 },
                 "token": {
                     "type": "string"

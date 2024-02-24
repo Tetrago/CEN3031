@@ -47,7 +47,7 @@ func wsHandler(conn *websocket.Conn) {
 	}
 
 	var user model.UserAccount
-	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.Ident))).Query(Database, &user); err != nil {
+	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.Identifier))).Query(Database, &user); err != nil {
 		if err != qrm.ErrNoRows {
 			fmt.Printf("[/ws] Failed to query database: %s\n", err.Error())
 		}
@@ -97,7 +97,7 @@ loop:
 				for _, v := range channels[handshake.GroupID] {
 					if v != recv {
 						v <- message{
-							token.Ident,
+							token.Identifier,
 							contents,
 							iat,
 						}

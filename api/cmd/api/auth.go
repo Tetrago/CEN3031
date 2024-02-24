@@ -13,8 +13,8 @@ import (
 )
 
 type authLoginRequest struct {
-	Ident    string `json:"ident"`
-	Password string `json:"password"`
+	Identifier string `json:"ident"`
+	Password   string `json:"password"`
 }
 
 type authLoginResponse struct {
@@ -40,7 +40,7 @@ func authLogin(g *gin.Context) {
 	}
 
 	var dest model.UserAccount
-	stmt := SELECT(UserAccount.Identifier, UserAccount.Hash).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(request.Ident)))
+	stmt := SELECT(UserAccount.Identifier, UserAccount.Hash).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(request.Identifier)))
 
 	if err := stmt.Query(Database, &dest); err != nil {
 		switch err {
@@ -59,7 +59,7 @@ func authLogin(g *gin.Context) {
 		return
 	}
 
-	if str, err := MakeToken(TokenContents{Ident: request.Ident}); err != nil {
+	if str, err := MakeToken(TokenContents{Identifier: request.Identifier}); err != nil {
 		fmt.Printf("[/auth/login] Error making token: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	} else {
