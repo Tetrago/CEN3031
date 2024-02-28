@@ -31,6 +31,10 @@ npm run dev
 
 Then go to the url printed in the terminal.
 
+### Usage
+
+Access the API documentation at `http://localhost:3000/api/v1/docs/index.html`.
+
 ## Resources
 
 - [Tailwind CSS](https://tailwindcss.com/docs/flex-basis)
