@@ -24,6 +24,16 @@ func GenerateBase64(length int) (string, error) {
 	return string(val), nil
 }
 
+func HashToInt(value string) int {
+	sum := 0
+
+	for i := 0; i < len(value); i++ {
+		sum += int(value[i])
+	}
+
+	return sum
+}
+
 func Hash(value string) string {
 	sh := sha256.New()
 	sh.Write([]byte(value))

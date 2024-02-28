@@ -1,8 +1,13 @@
 package user
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/hex"
 	"fmt"
+	"image"
+	"image/color"
+	"image/jpeg"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -219,6 +224,14 @@ func PostProfilePicture(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+var Colors = []color.RGBA{
+	{0xA6, 0xAD, 0xBB, 0xFF},
+	{0x00, 0xB5, 0xFF, 0xFF},
+	{0x00, 0xA9, 0x6E, 0xFF},
+	{0xFF, 0xBE, 0x00, 0xFF},
+	{0xFF, 0x58, 0x61, 0xFF},
+}
+
 // Profile Picture godoc
 // @Summary Retrieves profile picture
 // @Description Gets a user's profile picture from their identifier
@@ -240,7 +253,17 @@ func GetProfilePicture(c *gin.Context) {
 	}
 
 	if data, err := os.ReadFile(filepath.Join(globals.Opts.ImageFolderPath, uri.Identifier)); err != nil {
-		c.Status(http.StatusBadRequest)
+		img := image.NewRGBA(image.Rect(0, 0, 1, 1))
+		img.SetRGBA(0, 0, Colors[crypt.HashToInt(uri.Identifier)%len(Colors)])
+
+		var b bytes.Buffer
+		w := bufio.NewWriter(&b)
+
+		if err := jpeg.Encode(w, img, nil); err != nil {
+			fmt.Printf("[/usr/profile_picture] Failed to generate temporary profile picture: %s\n", err.Error())
+		} else {
+			c.Data(http.StatusOK, "image/jpeg", b.Bytes())
+		}
 	} else {
 		c.Data(http.StatusOK, "image/jpeg", data)
 	}
