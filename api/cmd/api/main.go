@@ -36,13 +36,25 @@ func setupDatabase() *sql.DB {
 	}
 }
 
+func getOrigin() string {
+	if globals.Opts.SslEnabled {
+		return fmt.Sprintf("https://%s:%d", globals.Opts.Hostname, globals.Opts.Hostport)
+	} else {
+		return fmt.Sprintf("http://%s:%d", globals.Opts.Hostname, globals.Opts.Hostport)
+	}
+}
+
 func setupRouter() *gin.Engine {
 	if !Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{getOrigin()}
+	config.AllowCredentials = true
+
 	r := gin.Default()
-	r.Use(cors.Default())
+	r.Use(cors.New(config))
 
 	g := r.Group(globals.Opts.BasePath)
 

@@ -231,7 +231,7 @@ paths:
     post:
       description: Updates a user's bio
       parameters:
-      - description: User token and new bio
+      - description: New bio
         in: body
         name: request
         required: true
@@ -274,11 +274,26 @@ paths:
       summary: Fetch user
       tags:
       - user
+  /user/groups:
+    get:
+      description: Returns all groups a user belongs to
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: Get groups
+      tags:
+      - user
   /user/join:
     post:
       description: Adds a user to a group
       parameters:
-      - description: User token and group to join
+      - description: Group to join
         in: body
         name: request
         required: true
@@ -296,11 +311,31 @@ paths:
       summary: Join group
       tags:
       - user
+  /user/leave:
+    post:
+      description: Removes a user from a group
+      parameters:
+      - description: Group to leave
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.JoinRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Leave group
+      tags:
+      - user
   /user/profile_picture:
     post:
       description: Uploads a new profile picture, replacing the old one
       parameters:
-      - description: User token and profile picture
+      - description: New profile picture
         in: body
         name: request
         required: true

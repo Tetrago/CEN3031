@@ -1,8 +1,12 @@
 <script>
     import { BASE_API_PATH } from '$lib/env';
 
+    /** @type {import('./$types').PageData} */
+    export let data;
+
     let departmentField = "";
     let codeField = "";
+    let groups = data.groups;
 
     $: coursesPromise = fetchCourses(departmentField);
 
@@ -14,8 +18,58 @@
             return [];
         }
 
-        const res = await fetch(`${BASE_API_PATH}/course/department/${dep.toUpperCase()}`)
+        const res = await fetch(`${BASE_API_PATH}/course/department/${dep.toUpperCase()}`, {
+            method: 'get',
+            mode: 'cors'
+        })
         return await res.json();
+    }
+
+    async function fetchGroups() {
+        const res = await fetch(`${BASE_API_PATH}/user/groups`, {
+            method: 'get',
+            mode: 'cors',
+            credentials: 'include'
+        });
+
+        return await res.json();
+    }
+
+    /**
+     * @param {string} label
+     */
+    async function join(label) {
+        const parts = label.split(' ')
+
+        const res = await fetch(`${BASE_API_PATH}/course/group/${parts[0]}/${parts[1]}`)
+        const data = await res.json()
+
+        await fetch(`${BASE_API_PATH}/user/join`, {
+            method: 'post',
+            mode: 'cors',
+            credentials: 'include',
+            body: JSON.stringify({
+                group_id: data
+            })
+        });
+
+        groups = await fetchGroups();
+    }
+
+    /**
+     * @param {number} id
+     */
+    async function leave(id) {
+        await fetch(`${BASE_API_PATH}/user/leave`, {
+            method: 'post',
+            mode: 'cors',
+            credentials: 'include',
+            body: JSON.stringify({
+                group_id: id
+            })
+        })
+
+        groups = await fetchGroups();
     }
 </script>
 
@@ -38,6 +92,18 @@
                 <div class="card-body">
                     <h2 class="card-title">{label}</h2>
                     <p>{name}</p>
+
+                    {#if groups !== undefined}
+                        {#if groups.some(d => d.name === label)}
+                            <div class="absolute inset-y-0 right-5 flex items-center h-full">
+                                <button on:click={() => leave(groups.find(d => d.name === label).group_id)} class="btn btn-neutral rounded-full w-32">Leave</button>
+                            </div>
+                        {:else}
+                            <div class="absolute inset-y-0 right-5 flex items-center h-full">
+                                <button on:click={() => join(label)} class="btn btn-outline rounded-full w-32">Join</button>
+                            </div>
+                        {/if}
+                    {/if}
                 </div>
             </div>
         {/each}

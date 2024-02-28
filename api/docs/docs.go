@@ -239,7 +239,7 @@ const docTemplate = `{
                 "summary": "Updates bio",
                 "parameters": [
                     {
-                        "description": "User token and new bio",
+                        "description": "New bio",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -299,6 +299,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/groups": {
+            "get": {
+                "description": "Returns all groups a user belongs to",
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get groups",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/join": {
             "post": {
                 "description": "Adds a user to a group",
@@ -308,7 +331,7 @@ const docTemplate = `{
                 "summary": "Join group",
                 "parameters": [
                     {
-                        "description": "User token and group to join",
+                        "description": "Group to join",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -333,6 +356,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/leave": {
+            "post": {
+                "description": "Removes a user from a group",
+                "tags": [
+                    "user"
+                ],
+                "summary": "Leave group",
+                "parameters": [
+                    {
+                        "description": "Group to leave",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.JoinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/profile_picture": {
             "post": {
                 "description": "Uploads a new profile picture, replacing the old one",
@@ -342,7 +396,7 @@ const docTemplate = `{
                 "summary": "Upload profile picture",
                 "parameters": [
                     {
-                        "description": "User token and profile picture",
+                        "description": "New profile picture",
                         "name": "request",
                         "in": "body",
                         "required": true,
