@@ -1,4 +1,4 @@
-package main
+package ws
 
 import (
 	"fmt"
@@ -13,6 +13,8 @@ import (
 
 	"github.com/tetrago/motmot/api/.gen/motmot/public/model"
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
+	"github.com/tetrago/motmot/api/internal/auth"
+	"github.com/tetrago/motmot/api/internal/globals"
 )
 
 var upgrader = websocket.Upgrader{
@@ -33,7 +35,7 @@ func wsHandler(group int64, ident string, conn *websocket.Conn) {
 	defer conn.Close()
 
 	var user model.UserAccount
-	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(ident))).Query(Database, &user); err != nil {
+	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(ident))).Query(globals.Database, &user); err != nil {
 		if err != qrm.ErrNoRows {
 			fmt.Printf("[/ws] Failed to query database: %s\n", err.Error())
 		}
@@ -103,7 +105,7 @@ loop:
 				Iat:      iat,
 			})
 
-			if _, err := stmt.Exec(Database); err != nil {
+			if _, err := stmt.Exec(globals.Database); err != nil {
 				quit <- 0
 				break loop
 			}
@@ -124,32 +126,28 @@ loop:
 // @Failure 401
 // @Param group path int64 true "Group ID"
 // @Router /ws/{group} [get]
-func wsGet(g *gin.Context) {
-	cookie, err := g.Cookie("token")
-	if err != nil {
-		g.Status(http.StatusUnauthorized)
-		return
-	}
+func Get(c *gin.Context) {
+	token := auth.ExpectToken(c)
 
 	var uri struct {
 		GroupID int64 `uri:"group" binding:"required"`
 	}
 
-	if err := g.ShouldBindUri(&uri); err != nil {
-		g.Status(http.StatusBadRequest)
+	if err := c.ShouldBindUri(&uri); err != nil {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	token, err := ProcessToken(cookie)
-	if err != nil {
-		g.Status(http.StatusBadRequest)
-		return
-	}
-
-	conn, err := upgrader.Upgrade(g.Writer, g.Request, nil)
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		return
 	}
 
-	go wsHandler(uri.GroupID, token.Identifier, conn)
+	go wsHandler(uri.GroupID, token.UserIdentifier(), conn)
+}
+
+func HttpHandler(r *gin.RouterGroup) {
+	g := r.Group("/ws")
+	g.Use(auth.Middleware())
+	g.GET("/ws/:group", Get)
 }

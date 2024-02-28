@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
 	"fmt"
@@ -10,9 +10,11 @@ import (
 
 	"github.com/tetrago/motmot/api/.gen/motmot/public/model"
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
+	"github.com/tetrago/motmot/api/internal/crypt"
+	"github.com/tetrago/motmot/api/internal/globals"
 )
 
-type authLoginRequest struct {
+type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -26,10 +28,10 @@ type authLoginRequest struct {
 // @Success 200
 // @Failure 400
 // @Failure 500
-// @Param request body authLoginRequest true "User login information"
+// @Param request body LoginRequest true "User login information"
 // @Router /auth/login [post]
-func authLogin(g *gin.Context) {
-	var request authLoginRequest
+func Login(g *gin.Context) {
+	var request LoginRequest
 	if err := g.BindJSON(&request); err != nil {
 		g.Status(http.StatusBadRequest)
 		return
@@ -38,32 +40,30 @@ func authLogin(g *gin.Context) {
 	var dest model.UserAccount
 	stmt := SELECT(UserAccount.Identifier, UserAccount.Hash).FROM(UserAccount).WHERE(UserAccount.Email.EQ(String(request.Email)))
 
-	if err := stmt.Query(Database, &dest); err != nil {
-		switch err {
-		default:
-			fmt.Printf("[/auth/login] Error querying database: %s\n", err.Error())
-			g.Status(http.StatusInternalServerError)
-		case qrm.ErrNoRows:
-			g.Status(http.StatusBadRequest)
-		}
-
+	if err := stmt.Query(globals.Database, &dest); err == qrm.ErrNoRows {
+		g.Status(http.StatusBadRequest)
+		return
+	} else if err != nil {
+		fmt.Printf("[/auth/login] Error querying database: %s\n", err.Error())
+		g.Status(http.StatusInternalServerError)
 		return
 	}
 
-	if Hash(request.Password) != dest.Hash {
+	if crypt.Hash(request.Password) != dest.Hash {
 		g.Status(http.StatusBadRequest)
 		return
 	}
 
-	if str, err := MakeToken(TokenContents{Identifier: dest.Identifier}); err != nil {
+	if raw, err := NewToken().SetUserIdentifier(dest.Identifier).Serialize(); err != nil {
 		fmt.Printf("[/auth/login] Error making token: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	} else {
-		g.SetCookie("token", str, 86400, "/", Routing.Hostname, false, true)
+		g.SetCookie("token", raw, 86400, "/", globals.Opts.Hostname, globals.Opts.SslEnabled, true)
 		g.Status(http.StatusOK)
 	}
 }
 
-func AuthHandler(r *gin.RouterGroup) {
-	r.POST("/login", authLogin)
+func HttpHandler(r *gin.RouterGroup) {
+	g := r.Group("/auth")
+	g.POST("/login", Login)
 }

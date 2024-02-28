@@ -1,4 +1,4 @@
-package main
+package group
 
 import (
 	"fmt"
@@ -11,9 +11,10 @@ import (
 
 	"github.com/tetrago/motmot/api/.gen/motmot/public/model"
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
+	"github.com/tetrago/motmot/api/internal/globals"
 )
 
-type groupAllResponseItem struct {
+type AllResponseItem struct {
 	ID          int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -24,25 +25,25 @@ type groupAllResponseItem struct {
 // @Description Gets all public groups
 // @Tags group
 // @Produce json
-// @Success 200 {array} groupAllResponseItem
+// @Success 200 {array} AllResponseItem
 // @Failure 500
 // @Router /group/all [get]
-func groupAll(g *gin.Context) {
+func All(c *gin.Context) {
 	var dest []model.Room
 	stmt := SELECT(Room.ID, Room.Name, Room.Description).FROM(Room)
 
-	if err := stmt.Query(Database, &dest); err != nil {
+	if err := stmt.Query(globals.Database, &dest); err != nil {
 		fmt.Printf("[/group/all] Error querying database: %s\n", err.Error())
-		g.Status(http.StatusInternalServerError)
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	g.JSON(http.StatusOK, lo.Map(dest, func(x model.Room, _ int) groupAllResponseItem {
-		return groupAllResponseItem{x.ID, x.Name, x.Description}
+	c.JSON(http.StatusOK, lo.Map(dest, func(x model.Room, _ int) AllResponseItem {
+		return AllResponseItem{x.ID, x.Name, x.Description}
 	}))
 }
 
-type groupGetResponse struct {
+type GetResponse struct {
 	ID          int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -53,44 +54,39 @@ type groupGetResponse struct {
 // @Description Gets group information
 // @Tags group
 // @Produce json
-// @Success 200 {object} groupGetResponse
+// @Success 200 {object} GetResponse
 // @Failure 400
 // @Failure 500
 // @Param id path int64 true "Group ID"
 // @Router /group/get/{id} [get]
-func groupGet(g *gin.Context) {
+func Get(c *gin.Context) {
 	var uri struct {
 		ID int64 `uri:"id" binding:"required"`
 	}
 
-	if err := g.ShouldBindUri(&uri); err != nil {
-		g.Status(http.StatusBadRequest)
+	if err := c.ShouldBindUri(&uri); err != nil {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	var dest model.Room
 	stmt := SELECT(Room.ID, Room.Name, Room.Description).FROM(Room).WHERE(Room.ID.EQ(Int64(uri.ID)))
 
-	if err := stmt.Query(Database, &dest); err != nil {
-		switch err {
-		default:
-			fmt.Printf("[/group/get] Error querying database: %s\n", err.Error())
-			g.Status(http.StatusInternalServerError)
-			return
-		case qrm.ErrNoRows:
-			g.Status(http.StatusBadRequest)
-			return
-		}
+	if err := stmt.Query(globals.Database, &dest); err == qrm.ErrNoRows {
+		c.Status(http.StatusBadRequest)
+	} else if err != nil {
+		fmt.Printf("[/group/get] Error querying database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+	} else {
+		c.JSON(http.StatusOK, GetResponse{
+			dest.ID,
+			dest.Name,
+			dest.Description,
+		})
 	}
-
-	g.JSON(http.StatusOK, groupGetResponse{
-		dest.ID,
-		dest.Name,
-		dest.Description,
-	})
 }
 
-type groupHistoryResponseItem struct {
+type HistoryResponseItem struct {
 	ID         int64  `json:"message_id"`
 	Identifier string `json:"user_ident"`
 	Contents   string `json:"contents"`
@@ -102,19 +98,19 @@ type groupHistoryResponseItem struct {
 // @Description Gets message history from a group in descending order
 // @Tags group
 // @Produce json
-// @Success 200 {array} groupHistoryResponseItem
+// @Success 200 {array} HistoryResponseItem
 // @Failure 500
 // @Param id     path  int64 true "Group ID"
 // @Param limit  query int64 true "Max number of messages to retreive (<= 20)"
 // @Param before query int64 true "UTC time cutoff; searches in reverse from this point (inclusive)"
 // @Router /group/history/{id} [get]
-func groupHistory(g *gin.Context) {
+func History(c *gin.Context) {
 	var uri struct {
 		ID int64 `uri:"id" binding:"required"`
 	}
 
-	if err := g.ShouldBindUri(&uri); err != nil {
-		g.Status(http.StatusBadRequest)
+	if err := c.ShouldBindUri(&uri); err != nil {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
@@ -123,8 +119,8 @@ func groupHistory(g *gin.Context) {
 		Before int64 `form:"before" binding:"required"`
 	}
 
-	if err := g.BindQuery(&request); err != nil {
-		g.Status(http.StatusBadRequest)
+	if err := c.BindQuery(&request); err != nil {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
@@ -147,17 +143,17 @@ func groupHistory(g *gin.Context) {
 		User model.UserAccount
 	}
 
-	if err := stmt.Query(Database, &dest); err != nil && err != qrm.ErrNoRows {
+	if err := stmt.Query(globals.Database, &dest); err != nil && err != qrm.ErrNoRows {
 		fmt.Printf("[/group/history] Error querying database: %s\n", err.Error())
-		g.Status(http.StatusInternalServerError)
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	g.JSON(http.StatusOK, lo.Map(dest, func(x struct {
+	c.JSON(http.StatusOK, lo.Map(dest, func(x struct {
 		model.RoomMessage
 		User model.UserAccount
-	}, _ int) groupHistoryResponseItem {
-		return groupHistoryResponseItem{
+	}, _ int) HistoryResponseItem {
+		return HistoryResponseItem{
 			x.ID,
 			x.User.Identifier,
 			x.Contents,
@@ -166,8 +162,9 @@ func groupHistory(g *gin.Context) {
 	}))
 }
 
-func GroupHandler(r *gin.RouterGroup) {
-	r.GET("/all", groupAll)
-	r.GET("/get/:id", groupGet)
-	r.GET("/history/:id", groupHistory)
+func HttpHandler(r *gin.RouterGroup) {
+	g := r.Group("/group")
+	g.GET("/all", All)
+	g.GET("/get/:id", Get)
+	g.GET("/history/:id", History)
 }
