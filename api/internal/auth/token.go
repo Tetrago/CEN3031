@@ -38,7 +38,7 @@ func ParseToken(raw string) (*Token, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return globals.Opts.TokenSecret, nil
+		return []byte(globals.Opts.TokenSecret), nil
 	})
 
 	if err != nil {

@@ -165,7 +165,7 @@ type PostProfilePictureRequest struct {
 // @Failure 400
 // @Failure 401
 // @Failure 500
-// @Param request body PostProfilePictureRequest true "User token and profile picture"
+// @Param request body PostProfilePictureRequest true "New profile picture"
 // @Router /user/profile_picture [post]
 func PostProfilePicture(c *gin.Context) {
 	var request PostProfilePictureRequest
@@ -260,7 +260,7 @@ type BioRequest struct {
 // @Failure 400
 // @Failure 401
 // @Failure 500
-// @Param request body BioRequest true "User token and new bio"
+// @Param request body BioRequest true "New bio"
 // @Router /user/bio [post]
 func Bio(c *gin.Context) {
 	token := auth.ExpectToken(c)
@@ -296,7 +296,7 @@ type JoinRequest struct {
 // @Failure 400
 // @Failure 401
 // @Failure 500
-// @Param request body JoinRequest true "User token and group to join"
+// @Param request body JoinRequest true "Group to join"
 // @Router /user/join [post]
 func Join(c *gin.Context) {
 	var request JoinRequest
@@ -308,7 +308,7 @@ func Join(c *gin.Context) {
 	token := auth.ExpectToken(c)
 
 	var user model.UserAccount
-	stmt := UserAccount.SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier())))
+	stmt := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier())))
 
 	if err := stmt.Query(globals.Database, &user); err == qrm.ErrNoRows {
 		c.Status(http.StatusBadRequest)
@@ -344,6 +344,89 @@ func Join(c *gin.Context) {
 	}
 }
 
+type LeaveRequest struct {
+	GroupID int64 `json:"group_id"`
+}
+
+// Leave godoc
+// @Summary Leave group
+// @Description Removes a user from a group
+// @Tags user
+// @Consume json
+// @Success 200
+// @Failure 400
+// @Failure 401
+// @Failure 500
+// @Param request body JoinRequest true "Group to leave"
+// @Router /user/leave [post]
+func Leave(c *gin.Context) {
+	var request LeaveRequest
+	if err := c.BindJSON(&request); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	token := auth.ExpectToken(c)
+
+	var dest model.UserAccount
+	stmt := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier())))
+
+	if err := stmt.Query(globals.Database, &dest); err == qrm.ErrNoRows {
+		fmt.Print("[/user/leave] Unable to find user from signed token")
+		c.Status(http.StatusInternalServerError)
+		return
+	} else if err != nil {
+		fmt.Printf("[/user/leave] Failed to query database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	var entry model.UserRoom
+	del := UserRoom.DELETE().WHERE(UserRoom.UserID.EQ(Int64(dest.ID)).AND(UserRoom.RoomID.EQ(Int64(request.GroupID)))).RETURNING(UserRoom.AllColumns)
+
+	if err := del.Query(globals.Database, &entry); err == qrm.ErrNoRows {
+		c.Status(http.StatusBadRequest)
+	} else if err != nil {
+		fmt.Printf("[/user/leave] Failed to execute query on database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+	} else {
+		c.Status(http.StatusOK)
+	}
+}
+
+type GroupsResponseItem struct {
+	ID   int64  `json:"group_id"`
+	Name string `json:"name"`
+}
+
+// Leave godoc
+// @Summary Get groups
+// @Description Returns all groups a user belongs to
+// @Tags user
+// @Produe json
+// @Success 200 {array} GroupResponseItem
+// @Failure 500
+// @Router /user/groups [get]
+func Groups(c *gin.Context) {
+	token := auth.ExpectToken(c)
+
+	var dest []model.Room
+	stmt := SELECT(Room.ID, Room.Name).FROM(
+		UserAccount.
+			INNER_JOIN(UserRoom, UserAccount.ID.EQ(UserRoom.UserID)).
+			INNER_JOIN(Room, UserRoom.RoomID.EQ(Room.ID)),
+	).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier())))
+
+	if err := stmt.Query(globals.Database, &dest); err != nil {
+		fmt.Printf("[/user/groups] Failed to query database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+	} else {
+		c.JSON(http.StatusOK, lo.Map(dest, func(x model.Room, _ int) GroupsResponseItem {
+			return GroupsResponseItem{x.ID, x.Name}
+		}))
+	}
+}
+
 func HttpHandler(r *gin.RouterGroup) {
 	g := r.Group("/user")
 	g.POST("/register", Register)
@@ -354,4 +437,6 @@ func HttpHandler(r *gin.RouterGroup) {
 	g.POST("/profile_picture", PostProfilePicture)
 	g.POST("/bio", Bio)
 	g.POST("/join", Join)
+	g.POST("/leave", Leave)
+	g.GET("/groups", Groups)
 }

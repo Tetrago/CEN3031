@@ -11,6 +11,7 @@ import (
 type Options struct {
 	TokenSecret      string
 	Hostname         string
+	Hostport         int
 	SslEnabled       bool
 	BasePath         string
 	DatabaseHostname string
@@ -79,16 +80,22 @@ func getInt(name string) (int, error) {
 }
 
 func LoadFromEnvironment() Options {
-	match := regexp.MustCompile(`^(https?)://([^/]+)(/.+)/?$`).FindStringSubmatch(require(getString("API_ENDPOINT_FQDN")))
+	match := regexp.MustCompile(`^(https?)://([^:]+):(\d+)(/[^:]+)/?$`).FindStringSubmatch(require(getString("API_ENDPOINT_FQDN")))
 	if match == nil {
 		panic("Invalid endpoint FQDN!")
+	}
+
+	port, err := strconv.Atoi(match[3])
+	if err != nil {
+		panic("Invalid FQDN")
 	}
 
 	return Options{
 		TokenSecret:      require(getSecret("API_TOKEN_SECRET")),
 		Hostname:         match[2],
+		Hostport:         port,
 		SslEnabled:       match[1] == "https",
-		BasePath:         match[3],
+		BasePath:         match[4],
 		DatabaseHostname: require(getString("API_DATABASE_HOSTNAME")),
 		DatabasePort:     otherwise(5432)(getInt("API_DATABASE_PORT")),
 		DatabaseName:     otherwise("motmot")(getString("API_DATABASE_NAME")),
