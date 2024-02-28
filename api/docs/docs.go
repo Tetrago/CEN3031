@@ -32,7 +32,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.authLoginRequest"
+                            "$ref": "#/definitions/auth.LoginRequest"
                         }
                     }
                 ],
@@ -98,7 +98,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Four-digit course code",
+                        "description": "Four-digit (with potential postfix) course code",
                         "name": "code",
                         "in": "path",
                         "required": true
@@ -133,7 +133,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.groupAllResponseItem"
+                                "$ref": "#/definitions/group.AllResponseItem"
                             }
                         }
                     },
@@ -166,7 +166,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.groupGetResponse"
+                            "$ref": "#/definitions/group.GetResponse"
                         }
                     },
                     "400": {
@@ -217,7 +217,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.groupHistoryResponseItem"
+                                "$ref": "#/definitions/group.HistoryResponseItem"
                             }
                         }
                     },
@@ -244,7 +244,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.userBioRequest"
+                            "$ref": "#/definitions/user.BioRequest"
                         }
                     }
                 ],
@@ -266,7 +266,7 @@ const docTemplate = `{
         },
         "/user/get/{ident}": {
             "get": {
-                "description": "Fetches user information and groups",
+                "description": "Fetches publically available user information and groups.",
                 "produces": [
                     "application/json"
                 ],
@@ -287,7 +287,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.userGetResponse"
+                            "$ref": "#/definitions/user.GetResponse"
                         }
                     },
                     "400": {
@@ -313,7 +313,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.userJoinRequest"
+                            "$ref": "#/definitions/user.JoinRequest"
                         }
                     }
                 ],
@@ -347,7 +347,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.userProfilePicturePostRequest"
+                            "$ref": "#/definitions/user.PostProfilePictureRequest"
                         }
                     }
                 ],
@@ -416,7 +416,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.userRegisterRequest"
+                            "$ref": "#/definitions/user.RegisterRequest"
                         }
                     }
                 ],
@@ -424,7 +424,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.userRegisterResponse"
+                            "$ref": "#/definitions/user.RegisterResponse"
                         }
                     },
                     "400": {
@@ -461,7 +461,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "main.authLoginRequest": {
+        "auth.LoginRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -472,7 +472,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.groupAllResponseItem": {
+        "group.AllResponseItem": {
             "type": "object",
             "properties": {
                 "description": {
@@ -486,7 +486,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.groupGetResponse": {
+        "group.GetResponse": {
             "type": "object",
             "properties": {
                 "description": {
@@ -500,7 +500,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.groupHistoryResponseItem": {
+        "group.HistoryResponseItem": {
             "type": "object",
             "properties": {
                 "contents": {
@@ -517,7 +517,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.userBioRequest": {
+        "user.BioRequest": {
             "type": "object",
             "properties": {
                 "bio": {
@@ -525,7 +525,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.userGetResponse": {
+        "user.GetResponse": {
             "type": "object",
             "properties": {
                 "bio": {
@@ -537,7 +537,7 @@ const docTemplate = `{
                 "groups": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/main.userGetResponseGroup"
+                        "$ref": "#/definitions/user.GetResponseGroup"
                     }
                 },
                 "ident": {
@@ -545,7 +545,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.userGetResponseGroup": {
+        "user.GetResponseGroup": {
             "type": "object",
             "properties": {
                 "id": {
@@ -556,7 +556,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.userJoinRequest": {
+        "user.JoinRequest": {
             "type": "object",
             "properties": {
                 "group_id": {
@@ -564,7 +564,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.userProfilePicturePostRequest": {
+        "user.PostProfilePictureRequest": {
             "type": "object",
             "properties": {
                 "jpeg": {
@@ -572,7 +572,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.userRegisterRequest": {
+        "user.RegisterRequest": {
             "type": "object",
             "properties": {
                 "display_name": {
@@ -586,7 +586,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.userRegisterResponse": {
+        "user.RegisterResponse": {
             "type": "object",
             "properties": {
                 "ident": {

@@ -1,10 +1,7 @@
-package main
+package course
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 
@@ -15,81 +12,47 @@ import (
 
 	"github.com/tetrago/motmot/api/.gen/motmot/public/model"
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
+	"github.com/tetrago/motmot/api/internal/globals"
 )
 
-type course struct {
-	Label string `json:"code"`
-	Name  string `json:"title"`
+type DepartmentRequest struct {
 }
 
-var cache = make(map[string][]course)
-
-func queryDepartmentCourses(dep string) ([]course, error) {
-	if v, ok := cache[dep]; ok {
-		return v, nil
-	}
-
-	url := fmt.Sprintf("https://catalog.ufl.edu/course-search/api/?page=fose&route=search&subject=%s", dep)
-	request := fmt.Sprintf(`{"other":{"srcdb":""},"criteria":[{"field":"subject","value":"%s"}]}`, dep)
-
-	res, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(request)))
-	if err != nil {
-		cache[dep] = nil
-		return nil, err
-	}
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		cache[dep] = nil
-		return nil, err
-	}
-
-	var dest struct {
-		Courses []course `json:"results"`
-	}
-
-	if err := json.Unmarshal(body, &dest); err != nil {
-		cache[dep] = nil
-		return nil, err
-	}
-
-	cache[dep] = dest.Courses
-	return dest.Courses, nil
+type DepartmentResponseItem struct {
+	Identifier  string `json:"label"`
+	Description string `json:"name"`
 }
 
-type courseDeparmentResponseItem struct {
-	Label string `json:"label"`
-	Name  string `json:"name"`
-}
+type DepartmentResponse []DepartmentResponseItem
 
 // Department godoc
 // @Summary Get courses in department
 // @Description Queries for all UF courses in a three-letter department prefix
 // @Tags course
 // @Produce json
-// @Sucess 200 {array} courseDepartmentResponseItem
+// @Sucess 200 {object} DepartmentResponse
 // @Failure 400
 // @Failure 503
 // @Param dep path string true "Three-letter department prefix"
 // @Router /course/department/{dep} [get]
-func courseDepartment(g *gin.Context) {
+func Department(c *gin.Context) {
 	var uri struct {
 		Department string `uri:"dep" binding:"required"`
 	}
 
-	if err := g.ShouldBindUri(&uri); err != nil || len(uri.Department) != 3 {
-		g.Status(http.StatusBadRequest)
+	if err := c.ShouldBindUri(&uri); err != nil || len(uri.Department) != 3 {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	courses, err := queryDepartmentCourses(uri.Department)
 	if err != nil {
-		g.Status(http.StatusServiceUnavailable)
+		c.Status(http.StatusServiceUnavailable)
 		return
 	}
 
-	g.JSON(http.StatusOK, lo.Map(courses, func(x course, _ int) courseDeparmentResponseItem {
-		return courseDeparmentResponseItem(x)
+	c.JSON(http.StatusOK, lo.Map(courses, func(x course, _ int) DepartmentResponseItem {
+		return DepartmentResponseItem(x)
 	}))
 }
 
@@ -103,9 +66,9 @@ func courseDepartment(g *gin.Context) {
 // @Failure 500
 // @Failure 503
 // @Param dep  path string true "Three-letter department prefix"
-// @Param code path string true "Four-digit course code"
+// @Param code path string true "Four-digit (with potential postfix) course code"
 // @Router /course/group/{dep}/{code} [get]
-func courseGroup(g *gin.Context) {
+func Group(g *gin.Context) {
 	var uri struct {
 		Department string `uri:"dep" binding:"required"`
 		Code       string `uri:"code" binding:"required"`
@@ -121,7 +84,7 @@ func courseGroup(g *gin.Context) {
 	var dest model.Room
 	stmt := SELECT(Room.ID).FROM(Room).WHERE(Room.Name.EQ(String(label)))
 
-	switch err := stmt.Query(Database, &dest); err {
+	switch err := stmt.Query(globals.Database, &dest); err {
 	default:
 		fmt.Printf("[/course/group] Error querying database: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
@@ -138,7 +101,7 @@ func courseGroup(g *gin.Context) {
 		return
 	}
 
-	course, ok := lo.Find(courses, func(x course) bool { return x.Label == label })
+	course, ok := lo.Find(courses, func(x course) bool { return x.Identifier == label })
 	if !ok {
 		g.Status(http.StatusBadRequest)
 		return
@@ -146,10 +109,10 @@ func courseGroup(g *gin.Context) {
 
 	ins := Room.INSERT(Room.Name, Room.Description).MODEL(model.Room{
 		Name:        label,
-		Description: course.Name,
+		Description: course.Description,
 	}).RETURNING(Room.ID)
 
-	if err := ins.Query(Database, &dest); err != nil {
+	if err := ins.Query(globals.Database, &dest); err != nil {
 		fmt.Printf("[/course/group] Error querying database: %s\n", err.Error())
 		g.Status(http.StatusInternalServerError)
 	} else {
@@ -157,7 +120,8 @@ func courseGroup(g *gin.Context) {
 	}
 }
 
-func CourseHandler(r *gin.RouterGroup) {
-	r.GET("/department/:dep", courseDepartment)
-	r.GET("/group/:dep/:code", courseGroup)
+func HttpHandler(r *gin.RouterGroup) {
+	g := r.Group("/course")
+	g.GET("/department/:dep", Department)
+	g.GET("/group/:dep/:code", Group)
 }

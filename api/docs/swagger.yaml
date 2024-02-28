@@ -1,12 +1,12 @@
 definitions:
-  main.authLoginRequest:
+  auth.LoginRequest:
     properties:
       email:
         type: string
       password:
         type: string
     type: object
-  main.groupAllResponseItem:
+  group.AllResponseItem:
     properties:
       description:
         type: string
@@ -15,7 +15,7 @@ definitions:
       name:
         type: string
     type: object
-  main.groupGetResponse:
+  group.GetResponse:
     properties:
       description:
         type: string
@@ -24,7 +24,7 @@ definitions:
       name:
         type: string
     type: object
-  main.groupHistoryResponseItem:
+  group.HistoryResponseItem:
     properties:
       contents:
         type: string
@@ -35,12 +35,12 @@ definitions:
       user_ident:
         type: string
     type: object
-  main.userBioRequest:
+  user.BioRequest:
     properties:
       bio:
         type: string
     type: object
-  main.userGetResponse:
+  user.GetResponse:
     properties:
       bio:
         type: string
@@ -48,29 +48,29 @@ definitions:
         type: string
       groups:
         items:
-          $ref: '#/definitions/main.userGetResponseGroup'
+          $ref: '#/definitions/user.GetResponseGroup'
         type: array
       ident:
         type: string
     type: object
-  main.userGetResponseGroup:
+  user.GetResponseGroup:
     properties:
       id:
         type: integer
       name:
         type: string
     type: object
-  main.userJoinRequest:
+  user.JoinRequest:
     properties:
       group_id:
         type: integer
     type: object
-  main.userProfilePicturePostRequest:
+  user.PostProfilePictureRequest:
     properties:
       jpeg:
         type: string
     type: object
-  main.userRegisterRequest:
+  user.RegisterRequest:
     properties:
       display_name:
         type: string
@@ -79,7 +79,7 @@ definitions:
       password:
         type: string
     type: object
-  main.userRegisterResponse:
+  user.RegisterResponse:
     properties:
       ident:
         type: string
@@ -96,7 +96,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.authLoginRequest'
+          $ref: '#/definitions/auth.LoginRequest'
       produces:
       - application/json
       responses:
@@ -137,7 +137,7 @@ paths:
         name: dep
         required: true
         type: string
-      - description: Four-digit course code
+      - description: Four-digit (with potential postfix) course code
         in: path
         name: code
         required: true
@@ -164,7 +164,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.groupAllResponseItem'
+              $ref: '#/definitions/group.AllResponseItem'
             type: array
         "500":
           description: Internal Server Error
@@ -186,7 +186,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.groupGetResponse'
+            $ref: '#/definitions/group.GetResponse'
         "400":
           description: Bad Request
         "500":
@@ -220,7 +220,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.groupHistoryResponseItem'
+              $ref: '#/definitions/group.HistoryResponseItem'
             type: array
         "500":
           description: Internal Server Error
@@ -236,7 +236,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.userBioRequest'
+          $ref: '#/definitions/user.BioRequest'
       produces:
       - application/json
       responses:
@@ -253,7 +253,7 @@ paths:
       - user
   /user/get/{ident}:
     get:
-      description: Fetches user information and groups
+      description: Fetches publically available user information and groups.
       parameters:
       - description: User identifier
         in: path
@@ -266,7 +266,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.userGetResponse'
+            $ref: '#/definitions/user.GetResponse'
         "400":
           description: Bad Request
         "500":
@@ -283,7 +283,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.userJoinRequest'
+          $ref: '#/definitions/user.JoinRequest'
       responses:
         "200":
           description: OK
@@ -305,7 +305,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.userProfilePicturePostRequest'
+          $ref: '#/definitions/user.PostProfilePictureRequest'
       responses:
         "200":
           description: OK
@@ -348,14 +348,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.userRegisterRequest'
+          $ref: '#/definitions/user.RegisterRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.userRegisterResponse'
+            $ref: '#/definitions/user.RegisterResponse'
         "400":
           description: Bad Request
         "500":
