@@ -227,6 +227,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/popular/{count}": {
+            "get": {
+                "description": "Gets the most popular groups by member count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "group"
+                ],
+                "summary": "Gets popular groups",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Count of groups to return",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/group.PopularResponseItem"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/bio": {
             "post": {
                 "description": "Updates a user's bio",
@@ -312,7 +347,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "$ref": "#/definitions/user.GroupsResponseItem"
                             }
                         }
                     },
@@ -380,6 +415,9 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -571,6 +609,17 @@ const docTemplate = `{
                 }
             }
         },
+        "group.PopularResponseItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "user.BioRequest": {
             "type": "object",
             "properties": {
@@ -603,6 +652,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.GroupsResponseItem": {
+            "type": "object",
+            "properties": {
+                "group_id": {
                     "type": "integer"
                 },
                 "name": {

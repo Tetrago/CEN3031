@@ -35,6 +35,13 @@ definitions:
       user_ident:
         type: string
     type: object
+  group.PopularResponseItem:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   user.BioRequest:
     properties:
       bio:
@@ -56,6 +63,13 @@ definitions:
   user.GetResponseGroup:
     properties:
       id:
+        type: integer
+      name:
+        type: string
+    type: object
+  user.GroupsResponseItem:
+    properties:
+      group_id:
         type: integer
       name:
         type: string
@@ -227,6 +241,29 @@ paths:
       summary: Gets group messages
       tags:
       - group
+  /group/popular/{count}:
+    get:
+      description: Gets the most popular groups by member count
+      parameters:
+      - description: Count of groups to return
+        in: path
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/group.PopularResponseItem'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: Gets popular groups
+      tags:
+      - group
   /user/bio:
     post:
       description: Updates a user's bio
@@ -282,7 +319,7 @@ paths:
           description: OK
           schema:
             items:
-              type: integer
+              $ref: '#/definitions/user.GroupsResponseItem'
             type: array
         "500":
           description: Internal Server Error
@@ -326,6 +363,8 @@ paths:
           description: OK
         "400":
           description: Bad Request
+        "401":
+          description: Unauthorized
         "500":
           description: Internal Server Error
       summary: Leave group

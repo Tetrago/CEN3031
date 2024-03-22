@@ -216,6 +216,41 @@
                 }
             }
         },
+        "/group/popular/{count}": {
+            "get": {
+                "description": "Gets the most popular groups by member count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "group"
+                ],
+                "summary": "Gets popular groups",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Count of groups to return",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/group.PopularResponseItem"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/bio": {
             "post": {
                 "description": "Updates a user's bio",
@@ -301,7 +336,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "$ref": "#/definitions/user.GroupsResponseItem"
                             }
                         }
                     },
@@ -369,6 +404,9 @@
                     },
                     "400": {
                         "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -560,6 +598,17 @@
                 }
             }
         },
+        "group.PopularResponseItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "user.BioRequest": {
             "type": "object",
             "properties": {
@@ -592,6 +641,17 @@
             "type": "object",
             "properties": {
                 "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.GroupsResponseItem": {
+            "type": "object",
+            "properties": {
+                "group_id": {
                     "type": "integer"
                 },
                 "name": {

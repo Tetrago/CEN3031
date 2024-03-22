@@ -162,9 +162,57 @@ func History(c *gin.Context) {
 	}))
 }
 
+type PopularResponseItem struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+// Popular godoc
+// @Summary Gets popular groups
+// @Description Gets the most popular groups by member count
+// @Tags group
+// @Produce json
+// @Success 200 {array} PopularResponseItem
+// @Failure 500
+// @Param count path int64 true "Count of groups to return"
+// @Router /group/popular/{count} [get]
+func Popular(c *gin.Context) {
+	var uri struct {
+		Count int64 `uri:"count" binding:"required"`
+	}
+
+	if err := c.ShouldBindUri(&uri); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	var dest []model.Room
+	stmt := SELECT(
+		Room.ID,
+		Room.Name,
+	).FROM(
+		Room.
+			LEFT_JOIN(UserRoom, Room.ID.EQ(UserRoom.RoomID)),
+	).GROUP_BY(Room.ID).ORDER_BY(COUNT(Room.ID).DESC()).LIMIT(uri.Count)
+
+	if err := stmt.Query(globals.Database, &dest); err != nil && err != qrm.ErrNoRows {
+		fmt.Printf("[/group/popular] Error querying database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, lo.Map(dest, func(x model.Room, _ int) PopularResponseItem {
+		return PopularResponseItem{
+			x.ID,
+			x.Name,
+		}
+	}))
+}
+
 func HttpHandler(r *gin.RouterGroup) {
 	g := r.Group("/group")
 	g.GET("/all", All)
 	g.GET("/get/:id", Get)
 	g.GET("/history/:id", History)
+	g.GET("/popular/:count", Popular)
 }
