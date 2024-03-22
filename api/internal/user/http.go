@@ -427,7 +427,7 @@ type GroupsResponseItem struct {
 // @Description Returns all groups a user belongs to
 // @Tags user
 // @Produe json
-// @Success 200 {array} GroupResponseItem
+// @Success 200 {array} GroupsResponseItem
 // @Failure 500
 // @Router /user/groups [get]
 func Groups(c *gin.Context) {
