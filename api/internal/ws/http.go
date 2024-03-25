@@ -149,5 +149,5 @@ func Get(c *gin.Context) {
 func HttpHandler(r *gin.RouterGroup) {
 	g := r.Group("/ws")
 	g.Use(auth.Middleware())
-	g.GET("/ws/:group", Get)
+	g.GET("/:group", Get)
 }
