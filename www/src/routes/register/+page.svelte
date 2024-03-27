@@ -62,87 +62,53 @@
             })
         });
 
-        const data = await res.json();
         if (res.ok) {
-            errorMessage = "";
-            goto('/home');
+            goto('/');
         } else {
-            errorMessage = data.message || "An error occurred. Please try again later.";
+            errorMessage = "An error occurred. Please try again later.";
         }
     }
 </script>
 
-<div class="container">
-    <h2>Create Your Account</h2>
-    <form on:submit={get_info}>
-        <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" id="name" bind:value={name} required>
+<div class="w-full flex justify-center">
+    <div class="flex flex-col card w-1/2 shadow-xl bg-base-200">
+        <div class="card-body">
+            <p class="text-2xl">Create your account</p>
+            <form class="flex flex-col" on:submit={get_info}>
+                <div>
+                    <div class="label">
+                        <div class="label-text">Name</div>
+                    </div>
+                    <input type="text" class={`w-full input input-bordered ${errorMessage !== "" ? "input-error" : ""}`} bind:value={name} required>
+                </div>
+                <div>
+                    <div class="label">
+                        <div class="label-text">Email</div>
+                    </div>
+                    <input type="email" class={`w-full input input-bordered ${errorMessage !== "" ? "input-error" : ""}`} placeholder="@ufl.edu" bind:value={id} required>
+                </div>
+                <div>
+                    <div class="label">
+                        <div class="label-text">Password</div>
+                    </div>
+                    <input type="password" class={`w-full input input-bordered ${errorMessage !== "" ? "input-error" : ""}`} bind:value={pw1} required>
+                </div>
+                <div>
+                    <div class="label">
+                        <div class="label-text">Confirm password</div>
+                    </div>
+                    <input type="password" class={`w-full input input-bordered ${errorMessage !== "" ? "input-error" : ""}`} bind:value={pw2} required>
+                </div>
+                <button class="btn btn-primary mt-5" type="submit">Create account</button>
+            </form>
         </div>
-        <div class="form-group">
-            <label for="email">Email Address (Must be UF Email)</label>
-            <input type="email" id="email" bind:value={id} required>
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" bind:value={pw1} required>
-        </div>
-        <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
-            <input type="password" id="confirmPassword" bind:value={pw2} required>
-        </div>
-        <button type="submit">Create account</button>
-    </form>
-    {#if errorMessage}
-    <p class="error">{errorMessage}</p>
-    {/if}
+    </div>
 </div>
 
-
-<style>
-    .container {
-        max-width: 400px;
-        margin: 50px auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    .form-group {
-        margin-bottom: 15px;
-    }
-    label {
-        display: block;
-        font-weight: bold;
-    }
-    h2{
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 30px;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="password"] {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    button {
-        display: block;
-        width: 100%;
-        padding: 10px;
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 30px;
-    }
-    button:hover {
-        background-color: #0056b3;
-    }
-    .error {
-        color: red;
-        margin-bottom: 10px;
-    }
-</style>
+{#if errorMessage !== ""}
+    <div class="toast toast-end">
+        <div class="alert alert-error">
+            <span>{errorMessage}</span>
+        </div>
+    </div>
+{/if}
