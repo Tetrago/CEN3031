@@ -18,6 +18,9 @@
         <ul class="menu menu-horizontal px-1 mr-1">
             <li><a href="/courses" class="rounded-full font-bold">Courses</a></li>
         </ul>
+        <ul class="menu menu-horizontal px-1 mr-1">
+            <li><a href="/mychats" class="rounded-full font-bold">My Chats</a></li>
+        </ul>
     </div>
 
     <div class="navbar-end">
