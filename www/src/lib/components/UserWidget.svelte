@@ -1,5 +1,4 @@
 <script>
-	import { invalidate, invalidateAll } from '$app/navigation';
     import { BASE_API_PATH } from '$lib/env';
     import { user_identifier } from '../../routes/stores';
 
@@ -21,9 +20,11 @@
         });
 
         if(res.ok) {
+            const data = await res.json();
+
             failed = false;
             signInModal.close();
-            invalidateAll();
+            user_identifier.set(data.ident);
         } else {
             failed = true;
         }
@@ -34,7 +35,7 @@
             method: 'post'
         });
 
-        invalidateAll();
+        user_identifier.set("");
     }
 </script>
 
