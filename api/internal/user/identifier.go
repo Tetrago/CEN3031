@@ -10,7 +10,7 @@ import (
 	. "github.com/tetrago/motmot/api/.gen/motmot/public/table"
 )
 
-func makeIdentifier() (string, error) {
+func MakeIdentifier() (string, error) {
 	var dest model.UserAccount
 
 generate:

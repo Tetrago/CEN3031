@@ -132,7 +132,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	ident, err := makeIdentifier()
+	ident, err := MakeIdentifier()
 	if err != nil {
 		fmt.Printf("[/user/register] Error generating identifier: %s\n", err.Error())
 		c.Status(http.StatusInternalServerError)
