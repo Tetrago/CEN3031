@@ -39,9 +39,9 @@
         user_identifier.set("");
     }
 
-    async function signUp() {
-        goto('/register');
+    function signUp() {
         signInModal.close();
+        goto('/register');
     }
 </script>
 
@@ -75,7 +75,7 @@
             <input bind:value={formPassword} type="password" name="password" class="grow border-none focus:ring-0" placeholder="Password" />
         </label>
         <div class="flex justify-between mt-2">
-            <button on:click={signUp} class="btn btn">Sign up</button>
+            <button on:click={signUp} class="btn">Sign up</button>
             <button on:click={signIn} class="btn btn-primary">Done</button>
         </div>
     </div>
