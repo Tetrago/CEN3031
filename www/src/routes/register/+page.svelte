@@ -1,33 +1,3 @@
-<!-- <script>
-    import { BASE_API_PATH } from '$lib/env';
-    
-    let id = "";
-    let pw = "";
-    async function get_info(){
-        const res = await fetch(`${BASE_API_PATH}/user/register`, {
-            // Ordinarily, this second argument could be admitted, but we need CORS so we
-            // have to do this bullshit.
-            method: 'post',
-            mode: 'cors',
-            body: JSON.stringify({
-                display_name: " ",
-                email: id,
-                password: pw
-            })
-        })
-    }
-</script>
-
-
-<div class = "p-5 m-5"> 
-    <input bind:value={id} type="text" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
-</div>
-<div class = "p-5 m-5"> 
-    <input bind:value={pw} type="text" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
-</div>
-
-
-<button class="btn btn-wide" on:click={get_info}>Sign up</button> -->
 <script>
     import { BASE_API_PATH } from '$lib/env';
     import { goto } from '$app/navigation';
@@ -52,9 +22,6 @@
         const res = await fetch(`${BASE_API_PATH}/user/register`, {
             method: 'post',
             mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 display_name: name, 
                 email: id,
