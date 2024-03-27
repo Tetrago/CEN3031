@@ -3,6 +3,7 @@
      import { page } from '$app/stores'; 
 	import { BASE_API_PATH } from '$lib/env';
      import { BASE_WS_PATH } from '$lib/env';
+     import { user_identifier } from '../../stores'
 
     /** @type {import('./$types').PageData} */
      export let data;
@@ -16,100 +17,141 @@
      let socket; 
 
 
-     onMount(() => {
-        socket = new WebSocket(`${BASE_WS_PATH}/ws/${groupId}`);
 
-        socket.onmessage = (event) => {
-            const messageData = JSON.parse(event.data);
-            const newMessage = messageData;
-            messages = [...messages, newMessage]
+     onMount(() => {
+          fetchDisplayNamesForOldMessages();
+          socket = new WebSocket(`${BASE_WS_PATH}/ws/${groupId}`);
+
+          socket.onmessage = async (event) => {
+               const messageData = JSON.parse(event.data);
+               console.log(messageData);
+               const display_name = await fetchUser(messageData.user_ident);
+               const newMessage = { ...messageData, display_name: display_name };
+               messages = [...messages, newMessage];
           };
 
-        return () => {
-            socket.close(); // 
-        };
-    });
+          return () => {
+               socket.close();
+          };
+     });
+
+     async function fetchDisplayNamesForOldMessages() {
+          const promises = oldMessages.map(async (msg) => {
+               const display_name = await fetchUser(msg.user_ident);
+               return { ...msg, display_name }; 
+          });
+          oldMessages = await Promise.all(promises);
+     }
+
 
      async function sendMessage() {
           if (message.trim() !== '') {
-               console.log("Sending message:", message);
                socket.send(message);
-               messages = [...messages, message]
+               const display_name = await fetchUser($user_identifier);
+               messages = [...messages, {user_ident: $user_identifier, contents: message, display_name: display_name}]
+               console.log(messages)
                message = ''; // Clear the message input after sending
           }
      }
 
      async function handleKeyup(event) {
           if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) {
-               event.preventDefault(); // Prevent the default action to stop from inserting a newline (if applicable)
+               event.preventDefault(); 
                sendMessage();
           }
      }
 
      async function fetchUser(ident){
-               const res = await fetch(`${BASE_API_PATH}/user/get/${ident}`, {
-               method: 'get',
-               mode: 'cors',
-               credentials: 'include'
+          const res = await fetch(`${BASE_API_PATH}/user/get/${ident}`, {
+          method: 'get',
+          mode: 'cors',
+          credentials: 'include'
           });
 
-          return await res.json()
+          const data = await res.json();
+          return data.display_name;
      }
 
-     async function fetch_profile_pic(user_ident){
-          const res = await fetch(`${BASE_API_PATH}/user/profile_picture/${user_ident}`, {
-               method: 'get', 
-               mode: 'cors',
-               credentials: 'include'
-          })
-          return res
-     }
-     
+
 
 
 </script>
    
+<style>
+     .custom-card-width {
+       width: 90%;
+       margin: 0 auto; 
+       box-sizing: border-box;
+     }
+   
+     .messages-container {
+       max-height: calc(75vh - 5px); 
+       overflow-y: auto; 
+       margin-bottom: 0px; 
+     }
+   
+     .text-entry-box {
+       position: fixed;
+       bottom: 3%;
+       width: 75%; 
+       left: 50%;
+       transform: translateX(-50%); 
+       z-index: 1000; 
+     }
+</style>
+   
 
 
 
-<div class="card">
-     {#each oldMessages as message} 
-     <div class="flex flex-col h-100">
-          <div class="flex-grow overflow-auto">
-               <div class="chat chat-start">
-                    <div class="chat-image avatar">
-                         <div class="w-10 rounded-full">
-                              <img alt="Tailwind CSS chat bubble component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+<div class="card custom-card-width bg-base-200">
+     <div class="messages-container">
+          {#each oldMessages as message} 
+          <div class="flex flex-col h-100 mb-5">
+               <div class="flex-grow overflow-auto">
+                    <div class="flex items-center">
+                         <div class="avatar">
+                              <div class="w-10 rounded-full">
+                                   <img alt="User Profile" src={`${BASE_API_PATH}/user/profile_picture/${message.user_ident}`} />
+                              </div>
+                         </div>
+                         <div class="flex flex-col ml-2">
+                              <div class="font-bold ">{message.display_name}</div>
+                              <div class="chat chat-start">
+                                   <div class="chat-bubble">{message.contents}</div>
+                              </div>
                          </div>
                     </div>
-                    <div class="chat-bubble">{message.contents}</div>
                </div>
-               
           </div>
-     </div>
-     {/each}
+          {/each}
 
-     {#each messages as mess} 
-     <div class="flex flex-col h-100">
-          <div class="flex-grow overflow-auto">
-               <div class="chat chat-start">
-                    <div class="chat-image avatar">
-                         <div class="w-10 rounded-full">
-                              <img alt="Tailwind CSS chat bubble component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+          {#each messages as mess} 
+          <div class="flex flex-col h-100 mb-5">
+               <div class="flex-grow overflow-auto">
+                    <div class="flex items-center">
+                         <div class="avatar">
+                              <div class="w-10 rounded-full">
+                                   <img alt="User Profile" src={`${BASE_API_PATH}/user/profile_picture/${mess.user_ident}`} />
+                              </div>
+                         </div>
+                         <div class="flex flex-col ml-2">
+                              <div class="font-bold">{mess.display_name}</div>
+                              <div class="chat chat-start">
+                                   <div class="chat-bubble">{mess.contents}</div>
+                              </div>
                          </div>
                     </div>
-                    <div class="chat-bubble">{mess}</div>
                </div>
-               
           </div>
+          {/each}
      </div>
-     {/each}
+
 </div>
 
-<div class="p-4">
-     <input       type="text"
-     placeholder="Type here"
-     class="input input-bordered input-primary w-full max-w-m"
-     bind:value={message}
-     on:keyup={handleKeyup} />
+<div class="text-entry-box">
+     <input type="text"
+            placeholder="Type here"
+            class="input input-bordered input-primary w-full max-w-m"
+            bind:value={message}
+            on:keyup={handleKeyup} />
 </div>
