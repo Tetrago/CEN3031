@@ -1,6 +1,7 @@
 <script>
     import { BASE_API_PATH } from '$lib/env';
     import { user_identifier } from '../../routes/stores';
+    import { goto } from '$app/navigation';
 
     /** @type HTMLDialogElement */
     let signInModal;
@@ -37,6 +38,11 @@
 
         user_identifier.set("");
     }
+
+    async function signUp() {
+        goto('/register');
+        signInModal.close();
+    }
 </script>
 
 {#if $user_identifier !== ""}
@@ -68,7 +74,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70"><path fill-rule="evenodd" d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z" clip-rule="evenodd" /></svg>
             <input bind:value={formPassword} type="password" name="password" class="grow border-none focus:ring-0" placeholder="Password" />
         </label>
-        <div class="flex justify-end mt-2">
+        <div class="flex justify-between mt-2">
+            <button on:click={signUp} class="btn btn">Sign up</button>
             <button on:click={signIn} class="btn btn-primary">Done</button>
         </div>
     </div>
