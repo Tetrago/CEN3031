@@ -1,0 +1,5 @@
+version: '3'
+
+services:
+  api:
+    command: "go test -tags debug github.com/tetrago/motmot/api/cmd/api"
