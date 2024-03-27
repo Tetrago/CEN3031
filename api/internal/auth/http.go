@@ -19,13 +19,17 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type LoginResponse struct {
+	Identifier string `json:"ident"`
+}
+
 // Login godoc
 // @Summary Login user
 // @Description Log in to user and authenticate with the backend
 // @Tags auth
 // @Produce json
 // @Consume json
-// @Success 200
+// @Success 200 {object} LoginResponse
 // @Failure 400
 // @Failure 500
 // @Param request body LoginRequest true "User login information"
@@ -59,7 +63,7 @@ func Login(g *gin.Context) {
 		g.Status(http.StatusInternalServerError)
 	} else {
 		g.SetCookie("token", raw, 86400, "/", globals.Opts.Hostname, globals.Opts.SslEnabled, true)
-		g.Status(http.StatusOK)
+		g.JSON(http.StatusOK, LoginResponse{Identifier: dest.Identifier})
 	}
 }
 

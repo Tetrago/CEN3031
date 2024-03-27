@@ -1,5 +1,7 @@
 <script>
     import { BASE_API_PATH } from '$lib/env';
+	import { onMount } from 'svelte';
+	import { user_identifier } from '../stores';
 
     // This 'data' variable contains the data we fetched in page.server.js
     // data.groups contains the groups the API returned (or undefined if
@@ -15,6 +17,13 @@
     // They'll be changed on the client side when we join and leave groups, and the
     // data variable shouldn't be changed.
     let groups = data.groups;
+
+    onMount(() => {
+        user_identifier.subscribe(async ident => {
+            if(ident !== "") groups = await fetchGroups();
+            else groups = undefined;
+        });
+    });
 
     // The $: syntax is special to Svelte. In this situation, it tells Svelte "hey,
     // if the departmentField variable ever changes, update coursesPromise too".

@@ -13,7 +13,7 @@ export async function POST({ cookies, fetch, request }) {
         cookies.set('token', parse(res.headers.getSetCookie()[0]).token, { path: '/' });
     }
 
-    return new Response(null, {
+    return new Response(JSON.stringify(await res.json()), {
         status: res.status
     });
 }

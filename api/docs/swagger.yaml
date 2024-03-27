@@ -6,6 +6,11 @@ definitions:
       password:
         type: string
     type: object
+  auth.LoginResponse:
+    properties:
+      ident:
+        type: string
+    type: object
   group.AllResponseItem:
     properties:
       description:
@@ -116,6 +121,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
         "400":
           description: Bad Request
         "500":
