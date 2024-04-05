@@ -302,6 +302,80 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/display_name": {
+            "post": {
+                "description": "Updates a user's display name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Updates display name",
+                "parameters": [
+                    {
+                        "description": "New display name",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.DisplayNameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/user/email": {
+            "post": {
+                "description": "Updates a user's email",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Updates email",
+                "parameters": [
+                    {
+                        "description": "New email",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.EmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/get/{ident}": {
             "get": {
                 "description": "Fetches publically available user information and groups.",
@@ -409,6 +483,43 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/user.JoinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/user/password": {
+            "post": {
+                "description": "Updates a user's password",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Updates password",
+                "parameters": [
+                    {
+                        "description": "New password",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.PasswordRequest"
                         }
                     }
                 ],
@@ -639,6 +750,22 @@ const docTemplate = `{
                 }
             }
         },
+        "user.DisplayNameRequest": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.EmailRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "user.GetResponse": {
             "type": "object",
             "properties": {
@@ -646,6 +773,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "display_name": {
+                    "type": "string"
+                },
+                "email": {
                     "type": "string"
                 },
                 "groups": {
@@ -686,6 +816,17 @@ const docTemplate = `{
             "properties": {
                 "group_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "user.PasswordRequest": {
+            "type": "object",
+            "properties": {
+                "new": {
+                    "type": "string"
+                },
+                "previous": {
+                    "type": "string"
                 }
             }
         },

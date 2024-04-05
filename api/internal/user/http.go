@@ -31,6 +31,7 @@ type GetResponseGroup struct {
 
 type GetResponse struct {
 	Identifier  string              `json:"ident"`
+	Email       string              `json:"email"`
 	DisplayName string              `json:"display_name"`
 	Bio         *string             `json:"bio,omitempty"`
 	Groups      *[]GetResponseGroup `json:"groups"`
@@ -63,7 +64,7 @@ func Get(c *gin.Context) {
 	}
 
 	stmt := SELECT(
-		UserAccount.Identifier, UserAccount.DisplayName, UserAccount.Bio,
+		UserAccount.Identifier, UserAccount.DisplayName, UserAccount.Email, UserAccount.Bio,
 		Room.ID, Room.Name,
 	).FROM(
 		UserAccount.
@@ -85,6 +86,7 @@ func Get(c *gin.Context) {
 
 		c.JSON(http.StatusOK, GetResponse{
 			dest.Identifier,
+			dest.Email,
 			dest.DisplayName,
 			dest.Bio,
 			&groups,
@@ -266,6 +268,136 @@ func GetProfilePicture(c *gin.Context) {
 		}
 	} else {
 		c.Data(http.StatusOK, "image/jpeg", data)
+	}
+}
+
+type PasswordRequest struct {
+	Previous string `json:"previous"`
+	New      string `json:"new"`
+}
+
+// Password godoc
+// @Summary Updates password
+// @Description Updates a user's password
+// @Tags user
+// @Produce json
+// @Consume json
+// @Success 200
+// @Failure 400
+// @Failure 401
+// @Failure 500
+// @Param request body PasswordRequest true "New password"
+// @Router /user/password [post]
+func Password(c *gin.Context) {
+	token := auth.ExpectToken(c)
+
+	var request PasswordRequest
+	if err := c.BindJSON(&request); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	var dest model.UserAccount
+
+	old := crypt.Hash(request.Previous)
+	stmt := SELECT(UserAccount.AllColumns).FROM(UserAccount).WHERE(
+		UserAccount.Identifier.EQ(String(token.UserIdentifier())).
+			AND(UserAccount.Hash.EQ(String(old))),
+	)
+
+	if err := stmt.Query(globals.Database, &dest); err == qrm.ErrNoRows {
+		c.Status(http.StatusBadRequest)
+		return
+	} else if err != nil {
+		fmt.Printf("[/user/join] Failed query database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	new := crypt.Hash(request.New)
+	set := UserAccount.UPDATE(UserAccount.Hash).MODEL(model.UserAccount{
+		Hash: new,
+	}).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier())))
+
+	if _, err := set.Exec(globals.Database); err != nil {
+		fmt.Printf("[/user/password] Failed to execute query on database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+	} else {
+		c.Status(http.StatusOK)
+	}
+}
+
+type EmailRequest struct {
+	Email string `json:"email"`
+}
+
+// Email godoc
+// @Summary Updates email
+// @Description Updates a user's email
+// @Tags user
+// @Produce json
+// @Consume json
+// @Success 200
+// @Failure 400
+// @Failure 401
+// @Failure 500
+// @Param request body EmailRequest true "New email"
+// @Router /user/email [post]
+func Email(c *gin.Context) {
+	token := auth.ExpectToken(c)
+
+	var request EmailRequest
+	if err := c.BindJSON(&request); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	stmt := UserAccount.UPDATE(UserAccount.Email).MODEL(model.UserAccount{
+		Email: request.Email,
+	}).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier())))
+
+	if _, err := stmt.Exec(globals.Database); err != nil {
+		fmt.Printf("[/user/email] Failed to execute query on database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+	} else {
+		c.Status(http.StatusOK)
+	}
+}
+
+type DisplayNameRequest struct {
+	DisplayName string `json:"display_name"`
+}
+
+// DisplayName godoc
+// @Summary Updates display name
+// @Description Updates a user's display name
+// @Tags user
+// @Produce json
+// @Consume json
+// @Success 200
+// @Failure 400
+// @Failure 401
+// @Failure 500
+// @Param request body DisplayNameRequest true "New display name"
+// @Router /user/display_name [post]
+func DisplayName(c *gin.Context) {
+	token := auth.ExpectToken(c)
+
+	var request DisplayNameRequest
+	if err := c.BindJSON(&request); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	stmt := UserAccount.UPDATE(UserAccount.DisplayName).MODEL(model.UserAccount{
+		DisplayName: request.DisplayName,
+	}).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier())))
+
+	if _, err := stmt.Exec(globals.Database); err != nil {
+		fmt.Printf("[/user/display_name] Failed to execute query on database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+	} else {
+		c.Status(http.StatusOK)
 	}
 }
 
@@ -458,6 +590,9 @@ func HttpHandler(r *gin.RouterGroup) {
 
 	g.Use(auth.Middleware())
 	g.POST("/profile_picture", PostProfilePicture)
+	g.POST("/password", Password)
+	g.POST("/display_name", DisplayName)
+	g.POST("/email", Email)
 	g.POST("/bio", Bio)
 	g.POST("/join", Join)
 	g.POST("/leave", Leave)
