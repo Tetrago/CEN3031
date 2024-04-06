@@ -3,7 +3,6 @@ package user
 import (
 	"bufio"
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"image"
 	"image/color"
@@ -159,10 +158,6 @@ func Register(c *gin.Context) {
 	}
 }
 
-type PostProfilePictureRequest struct {
-	Image string `json:"jpeg"`
-}
-
 // Profile Picture godoc
 // @Summary Upload profile picture
 // @Description Uploads a new profile picture, replacing the old one
@@ -172,11 +167,12 @@ type PostProfilePictureRequest struct {
 // @Failure 400
 // @Failure 401
 // @Failure 500
-// @Param request body PostProfilePictureRequest true "New profile picture"
+// @Param request formData file true "Profile picture"
 // @Router /user/profile_picture [post]
 func PostProfilePicture(c *gin.Context) {
-	var request PostProfilePictureRequest
-	if err := c.BindJSON(&request); err != nil {
+	file, err := c.FormFile("request")
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
 		c.Status(http.StatusBadRequest)
 		return
 	}
@@ -198,32 +194,12 @@ func PostProfilePicture(c *gin.Context) {
 		return
 	}
 
-	data, err := hex.DecodeString(request.Image)
-	if err != nil {
-		c.Status(http.StatusBadRequest)
-		return
-	}
-
-	file, err := os.Create(filepath.Join(globals.Opts.ImageFolderPath, token.UserIdentifier()))
-	if err != nil {
+	if err := c.SaveUploadedFile(file, filepath.Join(globals.Opts.ImageFolderPath, token.UserIdentifier())); err != nil {
 		fmt.Printf("[/user/profile_picture] Failed to create file: %s\n", err.Error())
 		c.Status(http.StatusInternalServerError)
-		return
+	} else {
+		c.Status(http.StatusOK)
 	}
-
-	if err := file.Truncate(0); err != nil {
-		fmt.Printf("[/user/profile_picture] Failed to truncate file: %s\n", err.Error())
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	if _, err := file.Write(data); err != nil {
-		fmt.Printf("[/user/profile_picture] Failed to write file: %s\n", err.Error())
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	c.Status(http.StatusOK)
 }
 
 var Colors = []color.RGBA{

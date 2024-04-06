@@ -548,13 +548,11 @@ const docTemplate = `{
                 "summary": "Upload profile picture",
                 "parameters": [
                     {
-                        "description": "New profile picture",
+                        "type": "file",
+                        "description": "Profile picture",
                         "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/user.PostProfilePictureRequest"
-                        }
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -826,14 +824,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "previous": {
-                    "type": "string"
-                }
-            }
-        },
-        "user.PostProfilePictureRequest": {
-            "type": "object",
-            "properties": {
-                "jpeg": {
                     "type": "string"
                 }
             }

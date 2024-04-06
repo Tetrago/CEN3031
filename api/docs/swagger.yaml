@@ -103,11 +103,6 @@ definitions:
       previous:
         type: string
     type: object
-  user.PostProfilePictureRequest:
-    properties:
-      jpeg:
-        type: string
-    type: object
   user.RegisterRequest:
     properties:
       display_name:
@@ -472,12 +467,11 @@ paths:
     post:
       description: Uploads a new profile picture, replacing the old one
       parameters:
-      - description: New profile picture
-        in: body
+      - description: Profile picture
+        in: formData
         name: request
         required: true
-        schema:
-          $ref: '#/definitions/user.PostProfilePictureRequest'
+        type: file
       responses:
         "200":
           description: OK
