@@ -54,6 +54,7 @@ func setupRouter() *gin.Engine {
 	config.AllowCredentials = true
 
 	r := gin.Default()
+	r.MaxMultipartMemory = 8 << 20
 	r.Use(cors.New(config))
 
 	g := r.Group(globals.Opts.BasePath)
