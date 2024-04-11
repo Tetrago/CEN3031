@@ -39,6 +39,11 @@
         user_identifier.set("");
     }
 
+    function myProfile(){
+        signInModal.close();
+        goto('/myProfile');
+    }
+
     function signUp() {
         signInModal.close();
         goto('/register');
@@ -53,6 +58,7 @@
             </div>
         </div>
         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+            <li><button on:click={myProfile}>My profile</button></li>
             <li><button on:click={signOut}>Sign out</button></li>
         </ul>
     </div>
