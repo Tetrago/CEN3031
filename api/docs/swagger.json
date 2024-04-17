@@ -254,6 +254,55 @@
                 }
             }
         },
+        "/group/search/{id}": {
+            "get": {
+                "description": "Searches for a message in a group",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "group"
+                ],
+                "summary": "Searchs messages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Content to search messages for",
+                        "name": "content",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max number of messages to retreive (\u003c= 20)",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/group.SearchResponseItem"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/bio": {
             "post": {
                 "description": "Updates a user's bio",
@@ -725,6 +774,23 @@
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "group.SearchResponseItem": {
+            "type": "object",
+            "properties": {
+                "contents": {
+                    "type": "string"
+                },
+                "iat": {
+                    "type": "integer"
+                },
+                "message_id": {
+                    "type": "integer"
+                },
+                "user_ident": {
                     "type": "string"
                 }
             }

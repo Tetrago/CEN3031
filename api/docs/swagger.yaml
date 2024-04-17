@@ -47,6 +47,17 @@ definitions:
       name:
         type: string
     type: object
+  group.SearchResponseItem:
+    properties:
+      contents:
+        type: string
+      iat:
+        type: integer
+      message_id:
+        type: integer
+      user_ident:
+        type: string
+    type: object
   user.BioRequest:
     properties:
       bio:
@@ -283,6 +294,39 @@ paths:
         "500":
           description: Internal Server Error
       summary: Gets popular groups
+      tags:
+      - group
+  /group/search/{id}:
+    get:
+      description: Searches for a message in a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Content to search messages for
+        in: query
+        name: content
+        required: true
+        type: string
+      - description: Max number of messages to retreive (<= 20)
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/group.SearchResponseItem'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: Searchs messages
       tags:
       - group
   /user/bio:
