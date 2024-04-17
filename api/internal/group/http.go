@@ -86,6 +86,82 @@ func Get(c *gin.Context) {
 	}
 }
 
+type SearchResponseItem struct {
+	ID         int64  `json:"message_id"`
+	Identifier string `json:"user_ident"`
+	Contents   string `json:"contents"`
+	IssuedAt   int64  `json:"iat"`
+}
+
+// Search godoc
+// @Summary Searchs messages
+// @Description Searches for a message in a group
+// @Tags group
+// @Produce json
+// @Success 200 {array} SearchResponseItem
+// @Failure 500
+// @Param id      path  int64 true  "Group ID"
+// @Param content query string true "Content to search messages for"
+// @Param limit   query int64 true  "Max number of messages to retreive (<= 20)"
+// @Router /group/search/{id} [get]
+func Search(c *gin.Context) {
+	var uri struct {
+		ID int64 `uri:"id" binding:"required"`
+	}
+
+	if err := c.ShouldBindUri(&uri); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	var request struct {
+		Limit   int64  `form:"limit" binding:"required"`
+		Content string `form:"content" binding:"required"`
+	}
+
+	if err := c.BindQuery(&request); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	if request.Limit > 20 {
+		request.Limit = 20
+	}
+
+	stmt := SELECT(
+		RoomMessage.ID, RoomMessage.Contents, RoomMessage.Iat,
+		UserAccount.Identifier,
+	).FROM(
+		RoomMessage.INNER_JOIN(UserAccount, RoomMessage.UserID.EQ(UserAccount.ID)),
+	).WHERE(
+		RoomMessage.Contents.LIKE(String(request.Content)),
+	).ORDER_BY(RoomMessage.Iat.DESC()).LIMIT(request.Limit)
+
+	var dest []struct {
+		model.RoomMessage
+
+		User model.UserAccount
+	}
+
+	if err := stmt.Query(globals.Database, &dest); err != nil && err != qrm.ErrNoRows {
+		fmt.Printf("[/group/search] Error querying database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, lo.Map(dest, func(x struct {
+		model.RoomMessage
+		User model.UserAccount
+	}, _ int) SearchResponseItem {
+		return SearchResponseItem{
+			x.ID,
+			x.User.Identifier,
+			x.Contents,
+			x.Iat,
+		}
+	}))
+}
+
 type HistoryResponseItem struct {
 	ID         int64  `json:"message_id"`
 	Identifier string `json:"user_ident"`
@@ -213,6 +289,7 @@ func HttpHandler(r *gin.RouterGroup) {
 	g := r.Group("/group")
 	g.GET("/all", All)
 	g.GET("/get/:id", Get)
+	g.GET("/search/:id", Search)
 	g.GET("/history/:id", History)
 	g.GET("/popular/:count", Popular)
 }
