@@ -164,6 +164,7 @@
     }
 </script>
 
+
 <div class="flex flex-col items-center w-full">
     <!-- Profile Settings Header -->
     <div class="text-3xl font-bold mt-5">
@@ -176,7 +177,7 @@
         <div class="flex flex-col items-center m-5">
             <img class="upload w-20 h-20 mt-2" alt="Avatar" src={profilePicture} />
             {#if editing}
-                <div class="file-input-container mt-4">
+                <div class="file-input-container items-center flex  mt-4">
                     <input accept="image/png, image/jpeg" bind:files id="avatar" name="avatar" type="file" style="display: none;" />
                     <label for="avatar" class="btn variant-soft">Choose File</label>
                 </div>
@@ -190,13 +191,13 @@
             {:else}
                 <div>{name}</div>
             {/if}
-            <div class="font-bold">Email</div>
+            <div class="font-bold pt-1">Email</div>
             {#if editing}
                 <input type="email" bind:value={new_email} class="input input-bordered w-full max-w-xl">
             {:else}
                 <div>{email}</div>
             {/if}
-            <div class="font-bold">Biography</div>
+            <div class="font-bold pt-1">Biography</div>
             {#if editing}
                 <textarea bind:value={new_bio} class="textarea textarea-bordered w-full max-w-xl h-32"></textarea>
             {:else}
@@ -211,9 +212,9 @@
         <!-- Edit Profile Button -->
         <div class="m-5 self-start">
             {#if editing}
-                <button on:click={save} class="btn btn-sm btn-success">Save</button>
+                <button on:click={save} class="btn btn-sm btn-success rounded-full">Save</button>
             {:else}
-                <button on:click={edit} class="btn btn-sm btn-neutral">Edit Profile</button>
+                <button on:click={edit} class="btn btn-sm btn-neutral rounded-full">Edit Profile</button>
             {/if}
         </div>
     </div>
@@ -221,29 +222,19 @@
     <!-- Change Password Section -->
     <div class="card w-full max-w-4xl bg-base-200 shadow-xl flex-row flex mt-5 items-center justify-between">
         <!-- Information Section -->
-        <div class="form-control m-5" style="margin-left: 20px;">
-            <div class="font-bold">Current Password</div>
-            <input type="password" bind:value={currentPassword} class="input input-bordered password-input">
-            <div class="font-bold">New Password</div>
-            <input type="password" bind:value={newPassword} class="input input-bordered password-input">
-            <div class="font-bold">Confirm New Password</div>
-            <input type="password" bind:value={confirmPassword} class="input input-bordered password-input">
+        <div class="form-control m-5">
+            <div class="font-bold py-2">Current Password</div>
+            <input type="password" bind:value={currentPassword} class="input input-bordered password-input w-80">
+            <div class="font-bold py-2">New Password</div>
+            <input type="password" bind:value={newPassword} class="input input-bordered password-input w-80">
+            <div class="font-bold py-2">Confirm New Password</div>
+            <input type="password" bind:value={confirmPassword} class="input input-bordered password-input w-80">
             <div class="text-red-500">{p_errorMessage}</div> <!-- Error message -->
         </div>
         <div class="m-5 self-start">
-            <div on:click={changePassword} class="btn btn-sm btn-neutral">Change Password</div>
+            <div on:click={changePassword} class="btn btn-sm btn-neutral rounded-full">Change Password</div>
         </div>
     </div>
 </div>
 
 
-<style>
-    .password-input {
-        width: 500px; 
-    }
-    .file-input-container {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem; /* 버튼과 사진 사이의 간격 조절 */
-    }
-</style>
