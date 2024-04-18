@@ -3,11 +3,12 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import logo from '$lib/assets/combinedLogo.jpg';
-
 	/**
 	 * @type {any[]}
 	 */
 	let popularGroups = [];
+	let dep;
+	let code;
 
 	// Function to fetch popular groups
 	async function fetchPopularGroups() {
@@ -22,6 +23,28 @@
 					console.error('Error fetching popular groups:', error);
 			}
 	}
+
+	async function join(label) {
+
+        const parts = label.split(' ')
+
+        const res = await fetch(`${BASE_API_PATH}/course/group/${parts[0]}/${parts[1]}`)
+        const data = await res.json()
+
+        await fetch(`${BASE_API_PATH}/user/join`, {
+
+            method: 'post',
+            mode: 'cors',
+            credentials: 'include',
+            
+            body: JSON.stringify({
+                group_id: data
+            })
+        });
+
+        groups = await fetchGroups();
+    }
+
 
 	// Fetch popular groups on component mount
 	onMount(fetchPopularGroups);
@@ -51,7 +74,13 @@
 			<h2 class="card-title">The most popular groups right now:</h2>
 			<ul class="mt-4">
 				{#each popularGroups as group}
-					<li>{group.name}</li>
+					<li class="flex justify-between items-center border-b border-gray-500 py-2">
+						<span class="font-semibold">{group.name}</span>
+						<button on:click={async () => {
+							goto(`/mychats/${group.name}`);
+							await join(group.name);
+						}} class="btn btn-neutral rounded-full">Join Group</button>
+					</li>
 				{/each}
 			</ul>
 		</div>
