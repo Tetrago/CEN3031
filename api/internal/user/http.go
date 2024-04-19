@@ -414,6 +414,91 @@ func Bio(c *gin.Context) {
 	}
 }
 
+// Blocked godoc
+// @Summary Get blocked users
+// @Description Returns all blocked users
+// @Tags user
+// @Produe json
+// @Success 200 {array} string
+// @Failure 401
+// @Failure 500
+// @Router /user/blocked [get]
+func Blocked(c *gin.Context) {
+	token := auth.ExpectToken(c)
+
+	var user model.UserAccount
+	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier()))).Query(globals.Database, &user); err != nil {
+		fmt.Printf("[/user/blocked] Failed query database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	var dest []model.UserAccount
+	stmt := SELECT(UserAccount.Identifier).FROM(
+		UserAccount.RIGHT_JOIN(UserBlock, UserBlock.BlockUserID.EQ(UserAccount.ID)),
+	).WHERE(UserBlock.UserID.EQ(Int64(user.ID)))
+
+	if err := stmt.Query(globals.Database, &dest); err != nil {
+		fmt.Printf("[/user/blocked] Failed query database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+	} else {
+		c.JSON(http.StatusOK, lo.Map(dest, func(x model.UserAccount, _ int) string {
+			return x.Identifier
+		}))
+	}
+}
+
+type BlockRequest struct {
+	Identifier string `json:"ident"`
+}
+
+// Block godoc
+// @Summary Block user
+// @Description Blocks a user's messages from being displayed
+// @Tags user
+// @Consume json
+// @Success 200
+// @Failure 400
+// @Failure 401
+// @Failure 500
+// @Param request body BlockRequest true "User to block"
+// @Router /user/block [post]
+func Block(c *gin.Context) {
+	var request BlockRequest
+	if err := c.BindJSON(&request); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	token := auth.ExpectToken(c)
+
+	var user model.UserAccount
+	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(token.UserIdentifier()))).Query(globals.Database, &user); err != nil {
+		fmt.Printf("[/user/block] Failed query database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	var block model.UserAccount
+	if err := SELECT(UserAccount.ID).FROM(UserAccount).WHERE(UserAccount.Identifier.EQ(String(request.Identifier))).Query(globals.Database, &block); err != nil {
+		fmt.Printf("[/user/block] Failed query database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	stmt := UserBlock.INSERT(UserBlock.UserID, UserBlock.BlockUserID).MODEL(model.UserBlock{
+		UserID:      user.ID,
+		BlockUserID: block.ID,
+	})
+
+	if _, err := stmt.Exec(globals.Database); err != nil {
+		fmt.Printf("[/user/block] Failed query database: %s\n", err.Error())
+		c.Status(http.StatusInternalServerError)
+	} else {
+		c.Status(http.StatusOK)
+	}
+}
+
 type JoinRequest struct {
 	GroupID int64 `json:"group_id"`
 }
@@ -573,4 +658,6 @@ func HttpHandler(r *gin.RouterGroup) {
 	g.POST("/join", Join)
 	g.POST("/leave", Leave)
 	g.GET("/groups", Groups)
+	g.POST("/block", Block)
+	g.GET("/blocked", Blocked)
 }
