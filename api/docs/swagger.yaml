@@ -68,11 +68,6 @@ definitions:
       ident:
         type: string
     type: object
-  user.BlockedResponseItem:
-    properties:
-      ident:
-        type: string
-    type: object
   user.DisplayNameRequest:
     properties:
       display_name:
@@ -393,8 +388,10 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/user.BlockedResponseItem'
+              type: string
             type: array
+        "401":
+          description: Unauthorized
         "500":
           description: Internal Server Error
       summary: Get blocked users

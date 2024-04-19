@@ -398,9 +398,12 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/user.BlockedResponseItem"
+                                "type": "string"
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -872,14 +875,6 @@ const docTemplate = `{
             }
         },
         "user.BlockRequest": {
-            "type": "object",
-            "properties": {
-                "ident": {
-                    "type": "string"
-                }
-            }
-        },
-        "user.BlockedResponseItem": {
             "type": "object",
             "properties": {
                 "ident": {
