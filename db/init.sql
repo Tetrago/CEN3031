@@ -30,3 +30,9 @@ CREATE TABLE room_message(
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES user_account(id),
     CONSTRAINT fk_room FOREIGN KEY(room_id) REFERENCES room(id)
 );
+
+CREATE TABLE user_block(
+    user_id bigserial,
+    block_user_id bigserial,
+    PRIMARY KEY(user_id, block_user_id)
+);

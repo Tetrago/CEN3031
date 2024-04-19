@@ -13,5 +13,6 @@ func UseSchema(schema string) {
 	Room = Room.FromSchema(schema)
 	RoomMessage = RoomMessage.FromSchema(schema)
 	UserAccount = UserAccount.FromSchema(schema)
+	UserBlock = UserBlock.FromSchema(schema)
 	UserRoom = UserRoom.FromSchema(schema)
 }

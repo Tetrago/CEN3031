@@ -351,6 +351,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/block": {
+            "post": {
+                "description": "Blocks a user's messages from being displayed",
+                "tags": [
+                    "user"
+                ],
+                "summary": "Block user",
+                "parameters": [
+                    {
+                        "description": "User to block",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.BlockRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/user/blocked": {
+            "get": {
+                "description": "Returns all blocked users",
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get blocked users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/user.BlockedResponseItem"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/display_name": {
             "post": {
                 "description": "Updates a user's display name",
@@ -810,6 +867,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "bio": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.BlockRequest": {
+            "type": "object",
+            "properties": {
+                "ident": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.BlockedResponseItem": {
+            "type": "object",
+            "properties": {
+                "ident": {
                     "type": "string"
                 }
             }
