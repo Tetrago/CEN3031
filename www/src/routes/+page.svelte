@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import logo from '$lib/assets/combinedLogo.jpg';
+	import { user_identifier } from './stores';
 	/**
 	 * @type {any[]}
 	 */
@@ -76,10 +77,12 @@
 				{#each popularGroups as group}
 					<li class="flex justify-between items-center border-b border-gray-500 py-2">
 						<span class="font-semibold">{group.name}</span>
+						{#if $user_identifier !== ""}
 						<button on:click={async () => {
 							goto(`/mychats/${group.name}`);
 							await join(group.name);
 						}} class="btn btn-neutral rounded-full">Join Group</button>
+						{/if}
 					</li>
 				{/each}
 			</ul>
