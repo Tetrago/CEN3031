@@ -135,7 +135,7 @@
                          <div class="flex-col ml-3">
                               <div class="font-bold chat-header username">{message.display_name}</div>
                               <div class="chat ">
-                                   <div class="chat-bubble chat-bub max-w-md break-words">{message.contents}</div>
+                                   <div class="chat-bubble chat-bub max-w-xl break-words">{message.contents}</div>
                               </div>
                          </div>
 
@@ -156,7 +156,7 @@
                          <div class="flex flex-col ml-2">
                               <div class="font-bold chat-header username">{mess.display_name}</div>
                               <div class="chat">
-                                   <div class="chat-bubble chat-bub max-w-lg break-words">{mess.contents}</div>
+                                   <div class="chat-bubble chat-bub max-w-xl break-words">{mess.contents}</div>
                               </div>
                          </div>
                     </div>
