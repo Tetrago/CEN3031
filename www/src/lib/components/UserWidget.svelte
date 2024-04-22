@@ -35,8 +35,8 @@
         await fetch('/auth/logout', {
             method: 'post'
         });
-
         user_identifier.set("");
+        goto('/');
     }
 
     function myProfile(){
