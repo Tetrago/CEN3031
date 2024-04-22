@@ -23,7 +23,6 @@
 
 
      function escapeRegExp(string) {
-        // Escapes special characters for use in a regular expression
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
      }
 
@@ -52,9 +51,8 @@
 
 <dialog bind:this={searchModal} id="modal search" class="modal">
 
-         <!-- Fixed Search Input at the Top -->
          <div class="modal-box" style="width: 600px; height: 400px;">
-               <div class="p-4 sticky top-0 z-10 bg-base-100"> <!-- Sticky top -->
+               <div class="p-4 sticky top-0 z-10 bg-base-100"> 
                     <input type="text"
                               placeholder="Search..."
                               class="input input-bordered input-primary w-full"
@@ -62,11 +60,9 @@
                     />
                </div>
           
-               <!-- Scrollable Search Results Container -->
-               <div class="overflow-auto p-2 bg-base-200 rounded-box"> <!-- Scrollable container for results -->
+               <div class="overflow-auto break-words p-2 bg-base-200 rounded-box max-w-lg"> 
                     {#each searchResults as message}
-                         <div class="p-2 hover:bg-base-300 rounded">
-                         <!-- Highlight matching parts -->
+                         <div class="p-2 pb-1 hover:bg-base-300 rounded">
                               {#each highlightMatches(message.contents, searchInput) as part}
                                    <span class={part.match ? 'text-primary' : ''}>
                                         {part.text}

@@ -80,13 +80,7 @@
 </script>
    
 <style>
-     .custom-card-width {
-       width: 100%;
-       margin: 0 auto; 
-       box-sizing: border-box;
-       height: 80%;
-       flex-direction: column;
-     }
+
    
      .messages-container {
        max-height: calc(75vh - 10px); 
@@ -106,16 +100,11 @@
      .search-button {
        position: fixed;
        bottom: 2.75%;
+       left:10%;
      }
 
      .chat-bub{
        background-color: rgb(50, 50, 50);
-       min-width: 50px;
-       max-width: 95%;
-       /* padding:10px; */
-       word-break: normal;
-       overflow-wrap: break-word;
-       margin: 0px 0;
      }
 
      .username{
@@ -131,7 +120,7 @@
 
 
 
-<div class="card custom-card-width bg-base-200">
+<div class="card bg-base-200">
      <div class="messages-container">
           {#each oldMessages as message} 
           <div class="flex flex-col h-100 mb-5">
@@ -145,8 +134,8 @@
 
                          <div class="flex-col ml-3">
                               <div class="font-bold chat-header username">{message.display_name}</div>
-                              <div class="chat">
-                                   <div class="chat-bubble chat-bub">{message.contents}</div>
+                              <div class="chat ">
+                                   <div class="chat-bubble chat-bub max-w-md break-words">{message.contents}</div>
                               </div>
                          </div>
 
@@ -165,9 +154,9 @@
                               </div>
                          </div>
                          <div class="flex flex-col ml-2">
-                              <div class="font-bold">{mess.display_name}</div>
+                              <div class="font-bold chat-header username">{mess.display_name}</div>
                               <div class="chat">
-                                   <div class="chat-bubble chat-bub">{mess.contents}</div>
+                                   <div class="chat-bubble chat-bub max-w-lg break-words">{mess.contents}</div>
                               </div>
                          </div>
                     </div>
