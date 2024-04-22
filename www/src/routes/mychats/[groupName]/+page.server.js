@@ -3,6 +3,7 @@ import { BASE_API_PATH } from "$lib/env";
 export async function load({ fetch, locals, params }) {
      let data;
      let id;
+     let blocked;
      // Check if the token is available
      if (locals.token !== undefined && params.groupName) {
           // Replace spaces with the proper encoding for URLs
@@ -22,13 +23,20 @@ export async function load({ fetch, locals, params }) {
           data = await res.json()
 
           id = courseId
+
+          blocked = await fetch(`${BASE_API_PATH}/user/blocked`, {
+               method: 'get',
+               credentials: 'include',
+               mode: 'cors'
+          }).then(res => res.json());
      }
      
      return {
           post: {
                chatHistory: data,
                id: id
-          }
+          },
+          blocked
      }
 }
 

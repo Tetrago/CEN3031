@@ -5,7 +5,7 @@
      import { BASE_WS_PATH } from '$lib/env';
      import { user_identifier } from '../../stores'
      import { restrictedWordsRegex } from './filter';
-     import SearchButton from './components/SearchButton.svelte';
+     import SearchButton from '$lib/components/SearchButton.svelte';
 
     /** @type {import('./$types').PageData} */
      export let data;
@@ -26,6 +26,7 @@
 
           socket.onmessage = async (event) => {
                const messageData = JSON.parse(event.data);
+               if(data.blocked.includes(messageData.user_ident)) return;
                const display_name = await fetchUser(messageData.user_ident);
                const newMessage = { ...messageData, display_name: display_name };
                messages = [...messages, newMessage];
@@ -37,7 +38,7 @@
      });
 
      async function fetchDisplayNamesForOldMessages() {
-          const promises = oldMessages.map(async (msg) => {
+          const promises = oldMessages.filter(m => !data.blocked.includes(m.user_ident)).map(async (msg) => {
                const display_name = await fetchUser(msg.user_ident);
                return { ...msg, display_name }; 
           });
