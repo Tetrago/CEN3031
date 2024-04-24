@@ -33,7 +33,7 @@ export async function load({ fetch, locals, params }) {
      
      return {
           post: {
-               chatHistory: data,
+               chatHistory: data.filter(m => !blocked.includes(m.user_ident)),
                id: id
           },
           blocked

@@ -38,7 +38,7 @@
      });
 
      async function fetchDisplayNamesForOldMessages() {
-          const promises = oldMessages.filter(m => !data.blocked.includes(m.user_ident)).map(async (msg) => {
+          const promises = oldMessages.map(async (msg) => {
                const display_name = await fetchUser(msg.user_ident);
                return { ...msg, display_name }; 
           });
@@ -75,7 +75,17 @@
           return data.display_name;
      }
 
+     async function blockUser(ident) {
+          await fetch(`${BASE_API_PATH}/user/block`, {
+               method: 'post',
+               mode: 'cors',
+               credentials: 'include',
+               body: JSON.stringify({ ident })
+          });
 
+          oldMessages = oldMessages.filter(m => m.user_ident != ident);
+          messages = messages.filter(m => m.user_ident != ident);
+     }
 
 
 </script>
@@ -84,7 +94,7 @@
 
    
      .messages-container {
-       max-height: calc(75vh - 10px); 
+       height: calc(75vh - 10px); 
        overflow-y: auto; 
        margin-bottom: -2px; 
      }
@@ -117,17 +127,15 @@
      }
 
 </style>
-   
-
 
 
 <div class="card bg-base-200">
      <div class="messages-container">
           {#each oldMessages as message} 
-          <div class="flex flex-col h-100 mb-5">
-               <div class="flex-grow overflow-auto">
+          <div class="flex flex-col h-100 mb-5 dropdown dropdown-bottom dropdown-begin">
+               <div tabindex="0" class="flex-grow overflow-auto">
                     <div class="flex items-center ">
-                         <div class="avatar prof-pic">
+                         <div tabindex="0"class="avatar prof-pic">
                               <div class="w-10 rounded-full ">
                                    <img alt="User Profile" src={`${BASE_API_PATH}/user/profile_picture/${message.user_ident}`} />
                               </div>
@@ -142,17 +150,28 @@
 
                     </div>
                </div>
+
+               {#if $user_identifier !== mess.user_ident}
+               <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+                   <li><button on:click={() => blockUser(message.user_ident)}>Block</button></li>
+               </ul>
+               {/if}
           </div>
           {/each}
 
           {#each messages as mess} 
-          <div class="flex flex-col h-100 mb-5">
-               <div class="flex-grow overflow-auto">
+          <div class="flex flex-col h-100 mb-5 dropdown dropdown-bottom dropdown-begin">
+               <div tabindex="0" class="flex-grow overflow-auto">
                     <div class="flex items-center">
-                         <div class="avatar">
-                              <div class="w-10 rounded-full">
-                                   <img alt="User Profile" src={`${BASE_API_PATH}/user/profile_picture/${mess.user_ident}`} />
+                         <div class="dropdown dropdown-bottom dropdown-end">
+                              <div tabindex="0" class="btn btn-ghost btn-circle avatar" role="button">
+                                   <div class="w-10 rounded-full">
+                                        <img alt="User Profile" src={`${BASE_API_PATH}/user/profile_picture/${mess.user_ident}`} />
+                                   </div>
                               </div>
+                              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+                                  <li><button on:click={() => blockUser(message.user_ident)}>Block</button></li>
+                              </ul>
                          </div>
                          <div class="flex flex-col ml-2">
                               <div class="font-bold chat-header username">{mess.display_name}</div>
@@ -162,6 +181,12 @@
                          </div>
                     </div>
                </div>
+
+               {#if $user_identifier !== mess.user_ident}
+               <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+                   <li><button on:click={() => blockUser(mess.user_ident)}>Block</button></li>
+               </ul>
+               {/if}
           </div>
           {/each}
      </div>
