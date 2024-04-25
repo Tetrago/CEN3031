@@ -132,6 +132,27 @@
 <div class="card bg-base-200">
      <div class="messages-container">
           {#each oldMessages as message} 
+          {#if $user_identifier === message.user_ident}
+          <div class="flex flex-col h-100 mb-5">
+               <div class="flex-grow overflow-auto">
+                    <div class="flex items-center ">
+                         <div class="avatar prof-pic">
+                              <div class="w-10 rounded-full ">
+                                   <img alt="User Profile" src={`${BASE_API_PATH}/user/profile_picture/${message.user_ident}`} />
+                              </div>
+                         </div>
+
+                         <div class="flex-col ml-3">
+                              <div class="font-bold chat-header username">{message.display_name}</div>
+                              <div class="chat ">
+                                   <div class="chat-bubble chat-bub max-w-xl break-words">{message.contents}</div>
+                              </div>
+                         </div>
+
+                    </div>
+               </div>
+          </div>
+          {:else}
           <div class="flex flex-col h-100 mb-5 dropdown dropdown-bottom dropdown-begin">
                <div tabindex="0" class="flex-grow overflow-auto">
                     <div class="flex items-center ">
@@ -151,12 +172,11 @@
                     </div>
                </div>
 
-               {#if $user_identifier !== mess.user_ident}
                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
                    <li><button on:click={() => blockUser(message.user_ident)}>Block</button></li>
                </ul>
-               {/if}
           </div>
+          {/if}
           {/each}
 
           {#each messages as mess} 
